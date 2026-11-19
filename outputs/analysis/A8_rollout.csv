@@ -1,0 +1,15 @@
+﻿dataset,features,R2,sd
+caresea per_session,static only,-0.006,0.045
+caresea per_session,+history,0.086,0.042
+caresea per_session,+w_gap,0.018,0.026
+caresea per_session,+w_7d,0.017,0.034
+caresea per_session,+w_30d,0.018,0.043
+caresea per_session,+all weather,-0.001,0.035
+caresea per_session,+history+all weather+tide,0.081,0.031
+KOEM weight,static only,-0.044,0.02
+KOEM weight,+history,0.441,0.01
+KOEM weight,+w_gap,-0.017,0.021
+KOEM weight,+w_7d,-0.018,0.026
+KOEM weight,+w_30d,-0.002,0.022
+KOEM weight,+all weather,-0.016,0.017
+KOEM weight,+history+all weather+tide,0.469,0.007

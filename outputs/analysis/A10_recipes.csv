@@ -1,0 +1,22 @@
+﻿dataset,target,recipe,R2,sd
+caresea,per_session,full (현재),0.081,0.031
+caresea,per_session,full + eb,0.081,0.03
+caresea,per_session,lean,0.122,0.021
+caresea,per_session,history+eb+tourism,0.114,0.022
+caresea,per_session,eb only,0.067,0.007
+caresea,plastic/session,full (현재),0.198,0.022
+caresea,plastic/session,full + eb,0.201,0.024
+caresea,plastic/session,lean,0.219,0.019
+caresea,plastic/session,history+eb+tourism,0.169,0.007
+caresea,plastic/session,eb only,0.139,0.011
+caresea,fishing/session,full (현재),0.183,0.025
+caresea,fishing/session,full + eb,0.191,0.025
+caresea,fishing/session,lean,0.223,0.016
+caresea,fishing/session,history+eb+tourism,0.169,0.009
+caresea,fishing/session,eb only,0.121,0.01
+KOEM,koem_weight,full (현재),0.469,0.007
+KOEM,koem_weight,full + eb,0.469,0.003
+KOEM,koem_weight,lean,0.475,0.007
+KOEM,koem_weight,eb only,0.437,0.004
+caresea,per_session (z),"lean 공통 피처, caresea만",0.076,0.031
+caresea,per_session (z),lean 공통 피처 + KOEM pooling,0.135,0.003

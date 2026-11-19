@@ -1,0 +1,5 @@
+﻿block,perm_AUC_drop,shap_mean_abs,gain_share
+base,0.031,0.818,0.242
+tourism,0.029,0.573,0.265
+tide,0.014,0.432,0.091
+terrain,0.008,0.755,0.4

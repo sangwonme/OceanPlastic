@@ -1,0 +1,5 @@
+﻿target,beach_days,split_half_r,reliability_full
+total_weight_g per session,192,0.697,0.822
+plastic_weight_g per session,192,0.66,0.795
+fishing_net_rope_g per session,192,0.554,0.713
+item_count per session,192,0.586,0.739

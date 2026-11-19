@@ -1,0 +1,15 @@
+# 원천 데이터 — 저장소에 넣지 않음 (출처는 dataset/README.md)
+# 모두의 반려해변 CC BY-NC: 원 출처 안내상 저장소 비포함
+dataset/caresea/
+# Copernicus ERA5 GRIB, 기상청 ASOS: 대용량, 재다운로드 가능
+dataset/era5/
+dataset/asos/
+dataset/asos_incheon/
+# 국가 해안쓰레기 모니터링 정리본: 재배포 범위 불명
+dataset/koem/
+# 원천 데이터에서 파생된 행 단위 결과·캐시·로그
+outputs/features.csv
+outputs/koem_features.csv
+outputs/cache/
+outputs/*.log
+__pycache__/

@@ -1,0 +1,7 @@
+﻿dataset,test_year,train_rows,test_rows,R2,R2_history_only
+caresea per_session,2024,79,28,-0.012,0.022
+caresea per_session,2025,107,188,-0.165,0.069
+caresea per_session,2026,295,63,0.026,-0.261
+KOEM weight,2021,657,352,0.38,0.342
+KOEM weight,2022,1009,351,0.535,0.485
+KOEM weight,2023,1360,353,0.574,0.472

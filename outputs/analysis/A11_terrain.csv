@@ -1,0 +1,23 @@
+﻿test,dataset,locations,features,R2,perm_p
+위치평균 Ridge LOO,KOEM 정점,59,정적 피처(어항·양식장·해안),0.021,
+위치평균 Ridge LOO,KOEM 정점,59,지형 라벨,0.003,0.06
+위치평균 Ridge LOO,KOEM 정점,59,둘 다,0.053,
+위치평균 Ridge LOO,caresea 해변(기록≥3),36,정적 피처(어항·양식장·해안),-0.041,
+위치평균 Ridge LOO,caresea 해변(기록≥3),36,지형 라벨,-0.119,0.746
+위치평균 Ridge LOO,caresea 해변(기록≥3),36,둘 다,-0.023,
+GroupKFold XGB,caresea per_session,94,lean,0.122,sd 0.021
+GroupKFold XGB,caresea per_session,94,lean + terrain,0.139,sd 0.011
+GroupKFold XGB,caresea per_session,94,terrain 단독(+base),-0.073,sd 0.046
+GroupKFold XGB,caresea per_session,94,history 없이 lean + terrain,0.045,sd 0.031
+GroupKFold XGB,caresea plastic/session,94,lean,0.219,sd 0.019
+GroupKFold XGB,caresea plastic/session,94,lean + terrain,0.221,sd 0.023
+GroupKFold XGB,caresea plastic/session,94,terrain 단독(+base),0.004,sd 0.062
+GroupKFold XGB,caresea plastic/session,94,history 없이 lean + terrain,0.129,sd 0.036
+GroupKFold XGB,caresea fishing/session,94,lean,0.223,sd 0.016
+GroupKFold XGB,caresea fishing/session,94,lean + terrain,0.224,sd 0.018
+GroupKFold XGB,caresea fishing/session,94,terrain 단독(+base),0.024,sd 0.060
+GroupKFold XGB,caresea fishing/session,94,history 없이 lean + terrain,0.158,sd 0.029
+GroupKFold XGB,KOEM weight,59,lean,0.475,sd 0.007
+GroupKFold XGB,KOEM weight,59,lean + terrain,0.474,sd 0.004
+GroupKFold XGB,KOEM weight,59,terrain 단독(+base),-0.193,sd 0.031
+GroupKFold XGB,KOEM weight,59,history 없이 lean + terrain,0.074,sd 0.037

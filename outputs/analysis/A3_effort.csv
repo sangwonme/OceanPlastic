@@ -1,0 +1,7 @@
+﻿target,effort,rows,R2_effort_only
+total,n_sessions,358,0.428
+total,n_sessions + distance_km,345,0.429
+per_session,n_sessions,358,0.119
+per_session,n_sessions + distance_km,345,0.112
+per_km,n_sessions,345,0.018
+per_km,n_sessions + distance_km,345,0.171

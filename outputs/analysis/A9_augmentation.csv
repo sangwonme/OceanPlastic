@@ -1,0 +1,4 @@
+﻿setup,R2,sd
+caresea only,0.052,0.022
++ koem_model 피처 (stacking),0.043,0.033
++ KOEM 행 합쳐 학습 (pooling),0.098,0.007

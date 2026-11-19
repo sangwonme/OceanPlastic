@@ -1,0 +1,21 @@
+﻿dataset,block,full_R2,drop_delta,solo_with_base
+caresea per_session,base,0.081,-0.012,-0.015
+caresea per_session,tide,0.081,-0.008,-0.078
+caresea per_session,port,0.081,0.016,-0.07
+caresea per_session,aqua,0.081,-0.014,-0.153
+caresea per_session,coast,0.081,0.003,-0.22
+caresea per_session,tourism,0.081,-0.039,0.041
+caresea per_session,koem,0.081,0.002,0.043
+caresea per_session,w_gap,0.081,-0.006,-0.018
+caresea per_session,w_7d,0.081,0.008,-0.052
+caresea per_session,w_30d,0.081,0.02,-0.045
+caresea per_session,history,0.081,-0.058,0.131
+KOEM weight,base,0.469,-0.001,-0.013
+KOEM weight,tide,0.469,-0.0,-0.0
+KOEM weight,port,0.469,0.007,-0.103
+KOEM weight,aqua,0.469,-0.006,-0.218
+KOEM weight,coast,0.469,0.001,-0.077
+KOEM weight,w_gap,0.469,0.0,0.026
+KOEM weight,w_7d,0.469,-0.006,0.024
+KOEM weight,w_30d,0.469,-0.008,0.056
+KOEM weight,history,0.469,-0.482,0.458

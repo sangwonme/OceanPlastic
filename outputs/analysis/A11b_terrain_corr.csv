@@ -1,0 +1,25 @@
+﻿dataset,label,rho,p,positives
+KOEM 정점,t_beach_len,-0.33,0.012,37
+KOEM 정점,t_aqua_visible,0.25,0.053,19
+KOEM 정점,t_tidal_flat,-0.24,0.072,14
+KOEM 정점,t_rock,0.23,0.086,46
+KOEM 정점,t_urban,-0.22,0.091,31
+KOEM 정점,t_stream,-0.16,0.235,8
+KOEM 정점,t_harbor,0.14,0.277,24
+KOEM 정점,t_sub_rock,0.14,0.308,6
+KOEM 정점,t_armored,-0.1,0.459,26
+KOEM 정점,t_sub_mud,-0.08,0.554,5
+KOEM 정점,t_enclosure,0.07,0.576,45
+KOEM 정점,t_sub_gravel,0.02,0.861,8
+caresea 해변(기록≥3),t_rock,0.37,0.027,21
+caresea 해변(기록≥3),t_harbor,-0.28,0.097,19
+caresea 해변(기록≥3),t_aqua_visible,0.24,0.166,1
+caresea 해변(기록≥3),t_urban,-0.21,0.213,32
+caresea 해변(기록≥3),t_stream,-0.15,0.377,2
+caresea 해변(기록≥3),t_armored,-0.14,0.416,20
+caresea 해변(기록≥3),t_sub_gravel,0.1,0.556,3
+caresea 해변(기록≥3),t_sub_mud,-0.09,0.604,1
+caresea 해변(기록≥3),t_sub_rock,0.07,0.671,1
+caresea 해변(기록≥3),t_enclosure,-0.04,0.821,26
+caresea 해변(기록≥3),t_beach_len,-0.03,0.841,30
+caresea 해변(기록≥3),t_tidal_flat,-0.01,0.972,10

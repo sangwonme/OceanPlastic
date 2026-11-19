@@ -1,0 +1,11 @@
+﻿target,rows,locations,rows_per_loc_median,eta2_in_sample,loo_loc_mean_R2
+total,358,94,2.0,0.538,0.227
+per_session,358,94,2.0,0.533,0.189
+per_km,345,92,2.0,0.511,0.023
+plastic/session,358,94,2.0,0.585,0.172
+fishing/session,358,94,2.0,0.591,0.134
+household/session,358,94,2.0,0.516,0.06
+natural/session,358,94,2.0,0.499,0.068
+items/session,358,94,2.0,0.485,-0.074
+koem_weight,1713,59,35.0,0.521,0.486
+koem_count,1713,59,35.0,0.694,0.671

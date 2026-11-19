@@ -1,0 +1,15 @@
+﻿param,value,mean,max
+weight,linear,0.171,0.191
+weight,none,0.195,0.213
+weight,sqrt,0.189,0.199
+objective,huber,0.183,0.213
+objective,squared,0.187,0.199
+monotone,False,0.182,0.208
+monotone,True,0.188,0.213
+max_depth,2,0.185,0.208
+max_depth,3,0.185,0.213
+min_child_weight,5,0.186,0.208
+min_child_weight,10,0.186,0.203
+min_child_weight,20,0.183,0.213
+reg_lambda,5,0.186,0.213
+reg_lambda,20,0.184,0.207

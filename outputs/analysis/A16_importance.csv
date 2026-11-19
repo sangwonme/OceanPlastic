@@ -1,0 +1,23 @@
+﻿feature,block,perm_AUC_drop,perm_sd,shap_mean_abs,direction,gain_share
+t_rock,terrain,0.0352,0.006,0.4509,값↑ → 많음↑,0.092
+month_sin,base,0.0314,0.0212,0.3314,값↑ → 많음↑,0.079
+visitors_log,tourism,0.0184,0.0043,0.3466,값↑ → 많음↓,0.083
+t_urban,terrain,0.016,0.0047,0.1631,값↑ → 많음↓,0.055
+summer_days,tourism,0.0114,0.0043,0.1764,값↑ → 많음↓,0.074
+year,base,0.0111,0.0012,0.1689,값↑ → 많음↓,0.06
+tide_spring_day,tide,0.0097,0.0099,0.2722,값↑ → 많음↓,0.051
+month_cos,base,0.0061,0.0036,0.1103,값↑ → 많음↑,0.057
+tide_spring_win,tide,0.0042,0.0023,0.1601,값↑ → 많음↑,0.04
+t_tidal_flat,terrain,0.0034,0.0016,0.0805,값↑ → 많음↑,0.075
+t_enclosure,terrain,0.0006,0.0005,0.0293,값↑ → 많음↑,0.041
+t_aqua_visible,terrain,-0.0003,0.0002,0.0014,값↑ → 많음↑,0.016
+t_sub_gravel,terrain,-0.0003,0.0002,0.0011,값↑ → 많음↑,0.022
+t_sub_rock,terrain,-0.0003,0.0003,0.0022,값↑ → 많음↑,0.014
+t_sub_mud,terrain,-0.0004,0.0004,0.0,불분명,0.0
+is_first,base,-0.0006,0.0004,0.0,불분명,0.0
+t_stream,terrain,-0.0008,0.0011,0.0007,값↑ → 많음↑,0.013
+t_harbor,terrain,-0.0009,0.0002,0.0183,값↑ → 많음↓,0.044
+is_designated,tourism,-0.001,0.0013,0.0504,값↑ → 많음↓,0.108
+t_armored,terrain,-0.0073,0.0018,0.0,불분명,0.0
+gap_days,base,-0.0168,0.0011,0.2072,불분명,0.046
+t_beach_len,terrain,-0.0373,0.0245,0.0074,값↑ → 많음↑,0.028

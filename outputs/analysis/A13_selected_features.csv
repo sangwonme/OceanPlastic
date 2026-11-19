@@ -1,0 +1,16 @@
+﻿feature,selected_frac
+beach_mean_y,1.0
+beach_eb_y,0.93
+t_urban,0.87
+river_near_km,0.8
+visitors_log,0.73
+t_rock,0.67
+is_designated,0.67
+wind_fetch_gap,0.53
+river_basin_w,0.47
+prev1_y,0.47
+storm_h_30d,0.4
+koem_prior_kg,0.33
+port_near_km,0.33
+port_n_10km,0.27
+buoy_farm_near_km,0.27

@@ -1,0 +1,16 @@
+﻿weight,objective,monotone,max_depth,min_child_weight,reg_lambda,R2,sd
+none,huber,True,3,20,5,0.213,0.013
+none,huber,True,2,20,5,0.208,0.013
+none,huber,True,2,5,5,0.208,0.014
+none,huber,False,3,20,5,0.208,0.011
+none,huber,True,3,20,20,0.207,0.01
+none,huber,True,3,5,5,0.206,0.019
+none,huber,False,3,20,20,0.206,0.008
+none,huber,False,2,20,5,0.205,0.012
+none,huber,False,2,5,5,0.205,0.012
+none,huber,True,3,5,20,0.204,0.012
+none,huber,True,2,10,5,0.203,0.015
+none,huber,True,3,10,20,0.203,0.014
+none,huber,True,2,20,20,0.202,0.01
+none,huber,True,2,5,20,0.201,0.011
+none,huber,True,2,10,20,0.201,0.012

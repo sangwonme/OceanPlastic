@@ -1,0 +1,9 @@
+﻿dataset,train_locations,R2,sd
+caresea per_session,18,-0.155,0.132
+caresea per_session,37,-0.033,0.121
+caresea per_session,56,0.027,0.066
+caresea per_session,75,0.081,0.031
+KOEM weight,11,0.319,0.033
+KOEM weight,23,0.421,0.007
+KOEM weight,35,0.445,0.007
+KOEM weight,47,0.469,0.007

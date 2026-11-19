@@ -1,0 +1,164 @@
+﻿loc_id,name,lat,lng,substrate,rock_level,tidal_flat,shape,beach_len,harbor_500m,armored_back,backshore,stream_outlet,aquaculture_visible,marker_ok,confidence,note
+b1,마시안해변,37.430954,126.416992,sand,0,0,open,long,1,1,mixed,0,0,1,2,Long sand beach; pier; road along beach top
+b100,우도해변,35.0853235,128.720032,sand,1,0,semi,short,1,1,mixed,0,0,1,2,"Small island village; sand spit beach, piers nearby"
+b105,학동몽돌,34.774247,128.640959,gravel,1,0,semi,long,1,1,mixed,0,1,1,3,Dark pebble beach; pier and buoy rows
+b108,목도주변 해변,35.451469,129.349121,rock,1,0,semi,short,1,1,urban,0,0,1,1,"Industrial seawall, no beach, islet offshore"
+b109,솔개공원해변,35.374081,129.349869,mixed,1,0,semi,medium,0,0,mixed,0,1,1,2,"Rocky point beside sand beach, longlines offshore"
+b11,하평해변,37.534242500000005,129.11615,sand,1,0,semi,medium,1,1,urban,0,0,1,2,"Sand beach beside reclaimed port wall, railway behind"
+b110,평동해변,35.355221,129.35018150000002,mixed,1,0,semi,short,1,1,mixed,0,0,1,1,"Rocky point, small beach beside harbor"
+b111,주전몽돌해변,35.565897,129.45540649999998,gravel,1,0,open,long,1,1,mixed,0,0,1,3,"Dark pebble beach, road behind, harbor south"
+b114,감지해변,35.060703,129.077545,gravel,1,0,semi,medium,1,1,mixed,0,0,1,1,"Grey cove beach, detached breakwater and pier"
+b116,중리해변,35.067578999999995,129.0655055,mixed,1,0,semi,short,1,1,urban,0,1,1,1,Small harbor on rocky coast; floating structure offshore
+b12,남항진해변,37.763863,128.955532,sand,1,0,semi,long,1,0,mixed,1,0,1,2,Sand beach south of river-mouth jetty; offshore reefs
+b124,청사포 몽돌해변,35.159622,129.1872025,gravel,1,0,semi,medium,1,1,mixed,0,1,1,2,"Gray pebble beach beside harbor, offshore farms"
+b129,송도해수욕장,35.0756475,129.0171735,sand,0,0,pocket,medium,1,1,urban,0,0,1,3,"Urban sand beach in bay, breakwaters"
+b13,안목해변,37.772665,128.947818,sand,0,0,semi,long,1,1,urban,1,0,1,3,"Urban sand beach, port and river mouth"
+b130,승두말해변,35.100002,129.122559,rock,2,0,open,short,0,0,mixed,0,0,1,3,"Rocky headland park, apartments, offshore islets"
+b135,올레길 7코스,33.2411453,126.5492397,mixed,2,0,semi,medium,0,0,natural,0,0,1,1,Basalt headland cove with grey boulder/pebble strip
+b138,이호해수욕장,33.497713000000005,126.4501955,sand,1,0,semi,medium,1,0,mixed,0,0,1,2,Sand beach between small harbor and large port
+b139,관곶해안길,33.5532685,126.643513,rock,2,0,open,short,0,1,natural,0,0,1,2,"Basalt rocky point, coastal road, farmland"
+b14,영진해변,37.868263,128.847733,sand,0,0,semi,medium,1,1,mixed,1,0,1,3,Sand beach ending at harbor breakwater; lagoon outlet south
+b142,표선해수욕장,33.322708,126.844063,sand,1,1,semi,long,1,1,mixed,0,0,0,2,Marker in resort; labeled large sand flat NW
+b144,중문색달해수욕장,33.244831,126.41436,mixed,1,0,semi,medium,1,0,mixed,1,0,1,2,East end of sand beach; basalt shore and marina
+b145,화순금모래해수욕장,33.24065,126.333694,sand,0,0,pocket,medium,1,1,mixed,0,0,1,3,Sand beach between two harbor structures
+b148,영종진해변,37.490175,126.5813675,sand,1,1,semi,medium,1,0,mixed,0,0,1,2,"Marker on pier; sand beach SW, flat partly submerged"
+b149,고온이해변,37.036087,126.746742,mud,0,1,semi,medium,1,1,mixed,0,0,1,2,Narrow sand strip fronting wide mud flat
+b150,한섬해변,37.520194,129.121943,sand,1,0,semi,medium,0,1,urban,0,0,1,3,Sand beach backed by railway and town
+b152,어달항해변,37.562746,129.12001,mixed,1,0,semi,short,1,1,mixed,0,0,1,2,Harbor; small sand beach south; road revetment north
+b155,을왕리해변,37.44606,126.373306,sand,1,1,pocket,medium,1,1,urban,0,0,1,3,"Pocket sand beach, exposed sand flat, small jetty"
+b156,소금막해변,33.332294,126.843445,mixed,1,1,semi,long,0,0,natural,0,0,1,2,White sand beach end meets basalt reef platform
+b157,함덕해수욕장,33.542068,126.669647,sand,1,0,semi,medium,0,1,urban,0,0,1,3,White sand beach with basalt outcrops; resort town
+b158,보목포구,33.239838,126.608288,rock,2,0,semi,short,1,1,mixed,0,0,1,3,"Basalt shore at fishing harbor, coastal road"
+b159,평대리해변,33.53635,126.840721,mixed,2,0,semi,short,1,1,mixed,0,0,1,2,"Basalt reefs with sand pockets, small harbor"
+b160,영일대해수욕장,36.054535,129.377968,sand,0,0,semi,long,1,1,urban,0,0,1,3,"Urban sand beach, port at south end"
+b162,광안리 해수욕장,35.1492635,129.1133425,sand,0,0,semi,long,1,1,urban,0,0,0,2,Marker 200 m inland; urban bay sand beach
+b163,신명해변,35.645355,129.442001,sand,1,0,semi,medium,1,0,mixed,0,0,1,2,North end of sand beach; small harbor; rocky coast
+b164,방망이섬 수변공원,34.841568,126.401406,mud,0,1,semi,short,0,1,mixed,0,1,1,2,Forested knoll on vast mudflat; highway along shore
+b165,주전보밑 연안 해양체험공원,35.547611,129.4542005,rock,2,0,open,short,0,0,natural,1,0,1,2,Rocky surf coast with small pebble coves
+b166,방아머리해변,37.2892855,126.576614,sand,0,1,open,long,0,1,mixed,0,0,1,2,"Sand beach, wide rippled flat, restaurants along road"
+b167,이어리해변,34.870722,127.8985785,mud,0,1,open,long,1,1,natural,0,0,1,2,"Wide mud flat, narrow sand strip, pier, levee road"
+b168,큰불항해변,35.555683,129.458099,rock,2,0,open,short,1,1,mixed,0,0,1,2,Rocky surf coast at small harbor; village road
+b171,소록해안길,34.512558,127.119804,mixed,1,0,semi,short,0,1,mixed,0,0,1,1,Sheltered bay shore by campus; no clear beach
+b172,일산해수욕장,35.497261,129.431396,sand,1,0,pocket,long,1,1,urban,0,0,1,3,"Urban crescent sand beach; offshore breakwater, moored boats"
+b173,천부해변,37.541946,130.87355,gravel,1,0,semi,short,1,1,mixed,0,0,1,1,Small gravel shore beside harbor and village
+b174,유달유원지 해변,34.789795,126.365921,mixed,1,0,semi,short,1,1,mixed,0,0,1,1,"Seawalled urban shore, small beach, piers"
+b176,하나개 해수욕장,37.383976,126.409546,sand,1,0,semi,medium,0,0,mixed,0,0,1,3,Sand beach with rocky south headland; resort buildings
+b177,주전해변,35.571438,129.4524845,gravel,1,0,open,long,0,1,mixed,1,0,1,2,Dark pebble beach along coastal road
+b178,용담해변,33.520444,126.494282,rock,2,0,open,short,0,1,mixed,0,0,1,3,"Basalt rocky shore, coastal road, no real beach"
+b179,주어동포구해변,33.371183,126.871971,rock,2,0,semi,short,1,1,mixed,0,0,1,3,Basalt rock platform with small harbor; no beach
+b18,켄싱턴해변,38.2441105,128.5726315,sand,0,0,open,long,0,0,mixed,0,0,1,3,"Long straight sand beach, harbor north outside circle"
+b180,해운대해수욕장,35.158909,129.160095,sand,1,0,semi,long,0,1,urban,0,0,1,3,Urban sand beach with promenade and high-rises
+b181,망상해변,37.593374,129.090474,sand,0,0,open,long,0,0,mixed,0,0,1,3,Long straight sand beach; resort facilities behind
+b182,표선 해안가,33.312704,126.836988,rock,2,0,open,short,0,1,natural,0,0,1,3,"Basalt rocky shore with tide pools, coastal road"
+b183,과개안해수욕장,35.49094,129.439362,sand,1,0,pocket,medium,0,0,mixed,0,0,1,2,"Pocket beach between rocky headlands; pale, maybe pebbles"
+b184,소바위해변,35.486507,129.438736,rock,2,0,open,short,0,1,mixed,0,0,1,2,Rocky surf coast with coastal road
+b185,목포해양대학교 앞바다,34.794199,126.359493,mixed,1,0,semi,short,1,1,urban,1,0,1,1,"Armored urban shore by bridge, sluice outlet"
+b186,기곡해수욕장,37.600544,129.080924,sand,0,0,open,long,0,0,mixed,1,0,1,3,"Long straight sand beach, small stream crossing"
+b187,여남항 해변,36.0734025,129.416687,rock,2,0,semi,short,1,1,mixed,0,0,1,2,Rocky shore along coastal road near harbor
+b2,용유해변,37.44286,126.401451,sand,1,0,semi,long,0,0,mixed,0,0,1,2,"Long sand beach; gray turbid water, possible flat"
+b201,속동전망대 바닷가,36.576954,126.463421,mud,1,1,open,medium,0,1,natural,1,0,1,2,"Muddy flat, tied rocky islet, road along shore"
+b202,천리포해변,36.802124000000006,126.150299,sand,1,1,pocket,medium,1,1,mixed,0,0,1,2,Wide sand flat bay; harbor at north end
+b205,변산해수욕장,35.680992,126.5313605,sand,1,1,semi,medium,0,1,mixed,0,0,1,2,Sand beach with wide sand flat; rocky north headland
+b207,안곰섬 해변,36.58433,126.293423,mud,1,1,semi,short,1,0,mixed,0,0,1,1,"Islet edge on wide flat, reefs west"
+b208,천수만 쉼터,36.620792,126.381805,mud,0,1,semi,short,0,1,natural,0,0,1,2,Muddy tidal flat beside dike road; no beach
+b209,삼봉해수욕장,36.5704289,126.3154324,sand,1,0,semi,long,0,0,natural,0,0,1,3,"Long sand beach, rocky headland north, pine forest"
+b21,낙산해수욕장,38.120724,128.631699,sand,0,0,semi,long,1,1,urban,0,0,1,3,"Long sand beach, harbor north, resort town"
+b24,송석해변,36.081853,126.623827,sand,1,0,semi,medium,1,0,mixed,0,0,1,2,"Sand beach between headland and island, small harbor"
+b245,장경리해수욕장,37.272048,126.448941,sand,1,1,semi,long,1,0,mixed,0,0,1,2,Curved sand beach; long sandbar and shallow flat
+b247,대송리해안,35.355818,129.359037,rock,2,0,open,short,1,1,mixed,0,0,1,2,"Rocky shore with coastal road, harbor at circle edge"
+b248,간절곶,35.361523,129.359604,rock,2,0,open,short,1,1,mixed,0,0,1,2,"Rocky headland, small harbor breakwater north"
+b25,송림해변,36.02343,126.663895,sand,0,1,open,long,0,0,mixed,0,0,1,3,"Long sand beach, wide sand flat, pine forest"
+b250,제부도 마리나해변,37.174424,126.625183,mixed,0,1,semi,medium,1,1,mixed,0,1,0,1,Marker inland; labeled east sand beach; marina nearby
+b254,동막 해변,37.5928961,126.4575804,mud,1,1,semi,medium,0,1,mixed,0,0,1,2,Sand strip fronting huge muddy tidal flat
+b27,매바위공원해변,36.055498,126.6329995,sand,0,0,semi,long,1,0,mixed,0,0,1,2,"Long sand beach ending at islet park, pier"
+b29,장포리해변,36.118858,126.600098,sand,0,0,open,long,0,0,mixed,0,0,1,3,"Long straight sand beach, pine forest and road"
+b3,선녀바위해변,37.44022,126.381897,mixed,1,1,pocket,medium,0,1,mixed,0,0,1,2,"Sand beach, gray sandy-mud flat with bars"
+b33,용무치해변,37.034054,126.549309,sand,1,1,semi,long,1,1,mixed,1,0,1,2,"Sandy flat with bars, seawall road, long pier"
+b35,마섬포구,37.023756,126.5743445,mud,1,1,semi,medium,1,0,mixed,0,0,1,2,Small sand beach fronting muddy flat; pier and seawall
+b36,원산도 해수욕장,36.361448,126.434376,sand,1,1,open,long,0,0,mixed,0,0,1,3,"Long sand beach, wide sand flat, tied rock islet"
+b37,용두 해수욕장,36.261211,126.547729,sand,1,1,semi,medium,0,0,mixed,0,0,1,2,Beach with wide sand flat; partly cloudy image
+b38,대천해수욕장,36.309765,126.514206,sand,0,0,open,long,0,1,urban,0,0,1,3,Wide long sand beach; dense resort strip behind
+b4,왕산해수욕장,37.455338,126.369545,sand,1,1,pocket,medium,0,1,mixed,0,0,1,3,Sand beach with wide sand flat; marina outside circle
+b41,청포대,36.645004,126.299721,sand,0,1,open,long,0,0,natural,0,0,1,3,Long straight sand beach with wide sand flat
+b42,몽산포,36.66803,126.289398,sand,0,1,open,long,0,0,natural,0,0,1,3,Long sand beach with wide sand flat; pine forest
+b5,거잠포해변,37.4222125,126.422222,mud,0,1,semi,medium,1,1,mixed,0,0,1,2,"Narrow sand strip, wide mud flat, boat moorings"
+b52,보성율포솔밭해수욕장,34.670114,127.090199,sand,0,0,semi,medium,1,0,mixed,0,1,1,3,Sand beach beside fishing harbor; pine strip; fish cages
+b54,웅천친수공원해수욕장,34.74715,127.667415,sand,0,0,semi,medium,1,1,urban,0,1,1,2,Artificial urban beach; marina; rafts in west bay
+b56,쌍봉동해안,34.755867,127.658279,mixed,0,0,semi,short,1,1,urban,0,0,1,1,"Seawall-lined urban bay, no visible beach"
+b57,가마미해수욕장,35.3979145,126.407425,sand,1,1,pocket,medium,1,1,mixed,0,0,1,2,Bay beach with wide sand flat; harbor south
+b59,고하도 윗마을해변,34.7706893,126.3725338,rock,2,0,pocket,short,1,0,natural,0,0,1,2,Tiny cove beach on rocky wooded coast; small harbor
+b6,실미해변,37.402939,126.402695,sand,1,1,semi,long,0,0,natural,0,0,1,2,"Sand beach with tombolo, broad shallow sand flat"
+b67,유림해변(거문도),34.022711,127.3067625,mixed,1,0,pocket,medium,1,1,mixed,0,0,1,1,Marker on slope by revetment; sand cove 400m south
+b73,고사포B,35.660942,126.50613,sand,0,0,open,long,0,0,natural,0,0,1,3,Long straight sand beach backed by pine forest
+b75,호미곶,36.023548000000005,129.4998705,gravel,1,0,semi,medium,1,1,mixed,1,0,1,1,Grey curved beach; harbor and stream to east
+b76,환호해변,36.069729,129.401413,sand,1,0,semi,short,1,1,urban,0,0,1,2,"Small urban sand beach, breakwater NE, subtidal reefs"
+b77,월포해수욕장,36.203516,129.3712845,sand,0,0,semi,long,1,1,urban,0,0,1,3,"Sand beach, harbor at north, village road behind"
+b8,궁평리해변,37.120255,126.684875,sand,0,0,semi,long,1,1,mixed,0,0,1,2,Narrow sand beach; offshore breakwater; port to south
+b80,장길리해변,35.9518363,129.5478148,rock,2,0,semi,short,1,1,mixed,0,0,1,2,Rocky headland with harbor and long footbridge
+b81,송도해변,36.033782,129.381336,sand,0,0,semi,long,1,1,urban,1,0,1,3,Urban sand beach; jetty and river mouth south
+b82,도구해수욕장,35.991861,129.442824,sand,0,0,open,long,0,0,urban,0,0,1,3,Straight exposed sand beach; town and greenhouses behind
+b83,청림해변,36.0004844,129.42157,sand,0,0,open,long,0,1,urban,1,0,1,2,"Sand beach backed by industrial area, drainage outlets"
+b84,용한리해변,36.112228,129.429977,sand,1,0,semi,medium,1,1,mixed,0,0,1,2,Narrow beach along road beside large port breakwater
+b85,장사해수욕장,36.283282,129.375016,sand,0,0,open,long,1,1,mixed,0,0,1,2,"Long sand beach, ship structure south end"
+b86,봉길대왕암해변,35.740693,129.483334,sand,0,0,open,long,0,1,mixed,1,0,1,2,"Long sand beach, river mouth north, offshore rock islet"
+b87,후정해수욕장,37.07253,129.411665,sand,0,0,open,long,1,0,mixed,0,0,1,3,Long sand beach with long pier inside circle
+b9,경포해변,37.8055,128.908401,sand,0,0,open,long,0,0,mixed,0,0,1,3,"Long straight sand beach, pine belt, hotels behind"
+k0,강릉 송정,37.780347,128.937288,sand,0,0,open,long,0,0,mixed,0,0,1,3,"Long straight sand beach, wide pine forest behind"
+k1,강화 여차리,37.609196,126.381198,mud,1,1,semi,short,0,1,natural,0,0,1,2,Road along shore fronting vast mudflat
+k10,동해 노봉,37.58859,129.09935,sand,1,0,open,long,0,0,mixed,0,0,1,3,Long straight sand beach; nearshore reefs
+k11,마산 봉암,35.2154,128.623975,mud,0,1,semi,short,1,0,mixed,1,0,1,1,"Islet in estuary channel; industrial piers, mud shoals"
+k12,보령 삽시도,36.33092,126.35338,sand,1,1,pocket,long,0,0,natural,0,0,1,3,Wide sand beach between headlands; pine forest behind
+k13,보령 석대도,36.244131,126.520114,sand,1,0,semi,short,0,0,natural,0,1,1,2,"Island sand beach, rocky perimeter, small raft"
+k14,부산 가덕도,35.060029,128.846417,sand,0,0,semi,short,0,1,mixed,0,1,1,2,"Short sand beach on spit, longlines west bay"
+k15,부산 일광,35.252181,129.252428,sand,1,0,open,medium,0,0,mixed,0,0,1,2,"Narrow sand strip with rocks, construction site behind"
+k16,부산 해양대,35.075482,129.091375,rock,2,0,open,short,1,1,urban,0,0,1,2,"Rocky island shore, campus, piers and seawall"
+k17,부안 변산,35.687127,126.532802,sand,1,1,semi,short,0,0,natural,0,0,1,2,Small cove on rocky headland; wide sand flat
+k18,사천 아두도,34.901437,128.058667,sand,1,0,semi,short,0,0,natural,0,1,1,1,"Small island beach, rocky ends, rafts nearby"
+k19,서천 다사항,36.1099,126.60567,sand,0,0,semi,long,1,0,mixed,1,0,1,3,Sand spit beside small harbor inlet
+k2,거제 두모,34.980383,128.694822,sand,1,0,semi,short,1,1,mixed,0,1,1,1,"Small cove beach by breakwater, armored shore south"
+k20,속초 청초,38.200627,128.597016,sand,0,0,semi,medium,1,1,urban,1,0,1,3,"Sand beach by breakwater, lagoon outlet, continues south"
+k21,시흥 정왕,37.338454,126.691824,sand,0,0,semi,medium,0,1,mixed,0,0,1,2,Small sand beach under road; seawall and industry nearby
+k22,신안 고장,34.882793,125.996333,sand,1,1,semi,long,0,0,natural,0,0,1,2,Sand beach below forested headland; wide sand flats
+k23,신안 압해도,34.840585,126.260527,sand,0,0,open,medium,1,1,mixed,0,1,1,1,"Sand strip, turbid water hides flat, ferry pier"
+k24,신안 우이도,34.614031,125.822827,sand,1,0,semi,long,1,0,natural,0,0,1,2,"Sand beach at dune isthmus, rocky headland west"
+k25,신안 임자도,35.140523,126.115576,sand,1,0,semi,long,0,0,natural,0,0,1,3,Long sand beach ending at rocky headland
+k26,신안 흑산도,34.682345,125.407616,sand,1,0,pocket,short,1,0,mixed,0,1,1,2,"Small cove beach by village jetty, many aquaculture rafts"
+k27,안산 말부흥,37.209391,126.615229,mixed,1,1,semi,short,1,0,mixed,0,0,1,1,Small beach on headland; mudflat channels; long pier
+k28,여수 거문도,34.055286,127.294675,mixed,1,0,pocket,short,1,1,mixed,0,1,1,2,"Small cove beach, seawall road; harbor and rafts nearby"
+k29,여수 반월,34.80759,127.556183,mixed,1,0,semi,short,1,1,mixed,1,1,1,1,"Small rocks and narrow beach, village harbor, drainage"
+k3,고성 하일,34.921785,128.200813,gravel,1,0,semi,medium,1,1,mixed,0,1,1,1,"Narrow road-backed shore, substrate unclear"
+k30,여수 백야도,34.611901,127.64179,sand,1,0,pocket,medium,1,0,natural,0,1,1,2,Narrow beach at bay head; rafts visible offshore NE
+k31,여수 안도,34.490179,127.813016,sand,1,0,pocket,short,0,0,natural,0,1,1,3,Pocket sand beach in rocky cove; rafts to west
+k32,영광 백바위,35.2448,126.307054,mud,1,1,open,medium,0,1,natural,0,0,1,2,Rocky point on wide mudflat; narrow sand strip
+k33,영덕 고래불,36.591809,129.4101,sand,0,0,open,long,0,0,natural,1,0,1,3,"Long open sand beach; pine forest, stream outlets"
+k34,완도 보길도,34.155616,126.50965,gravel,1,0,semi,medium,1,0,natural,0,1,1,1,"Narrow pale shore strip, unclear gravel or rock"
+k35,완도 신지도,34.328257,126.777491,sand,1,0,semi,short,1,1,natural,0,1,1,2,"Small sand cove beach, longlines offshore"
+k36,완도 평일도,34.334504,127.067825,sand,1,0,semi,long,0,0,mixed,0,0,1,3,Long curved sand beach; rocky east end
+k37,울릉 현포,37.52323,130.814637,gravel,1,0,open,medium,1,1,mixed,0,0,1,2,Gravel shore along coastal road; small breakwater
+k38,울산 대왕암,35.490138,129.439721,gravel,1,0,semi,medium,0,0,natural,0,0,1,1,"Narrow pale steep beach in rocky cove, gravel?"
+k39,울산 주전,35.568184,129.454903,gravel,1,0,open,medium,0,1,mixed,0,0,1,2,Dark pebble shore with surf; coastal road behind
+k4,고창 동호,35.510152,126.478666,sand,0,0,open,long,0,0,mixed,1,0,1,3,Long straight sand beach; drain outlet at marker
+k40,울주 나사리,35.355592,129.334535,sand,1,0,semi,medium,1,1,urban,0,0,1,2,"Sand beach with groins, rocky shore south"
+k41,울진 후정,37.070654,129.415776,sand,1,0,semi,long,1,0,mixed,0,0,1,2,"Sand beach, rocky reefs SE, long pier"
+k42,인천 영종도,37.44302,126.389793,sand,1,1,semi,medium,0,1,mixed,0,0,1,2,Small beach by headland; wide sandbars and flats
+k43,인천 영흥도,37.270755,126.494102,mud,0,1,open,medium,0,1,natural,0,0,1,3,Coastal road fronting wide channeled mudflat
+k44,제주 김녕리,33.565746,126.765561,rock,2,0,open,short,0,0,natural,0,0,1,2,"Basalt rocky shore, small sand pockets, farmland"
+k45,제주 사계리,33.222112,126.296288,mixed,1,0,semi,medium,0,1,mixed,0,0,1,2,Sand beach ends at basalt reefs by marker
+k46,제주 위미,33.269456,126.652471,rock,2,0,semi,short,0,1,urban,0,0,1,2,"Basalt rocky coast, tiny cove; harbor just outside circle"
+k47,진도 가사도,34.492353,126.051571,mixed,1,0,pocket,short,0,0,natural,0,0,1,1,Hazy image; small flat at head of cove
+k48,진도 하조도,34.283875,126.073198,sand,1,0,semi,medium,0,0,natural,0,1,1,3,"Sand cove beach, rocky ends, extensive longlines"
+k49,태안 백리포,36.812857,126.155314,sand,1,1,pocket,medium,0,0,natural,0,0,1,3,Pocket beach with wide sand flat between headlands
+k5,고흥 신흥,34.584309,127.145063,gravel,1,0,semi,short,1,1,natural,0,0,1,1,"Road-lined bay shore, substrate unclear"
+k50,태안 안면도,36.412354,126.376958,sand,0,1,open,long,0,0,natural,0,0,1,2,"Very wide exposed sand flat, natural backshore"
+k51,통영 망일봉,34.844393,128.443972,rock,2,0,pocket,short,1,0,mixed,0,1,1,2,"Tiny cove in rocky shore, harbor west, buoys"
+k52,통영 욕지도,34.62283,128.242944,rock,2,0,semi,short,1,1,natural,0,1,1,1,"Rocky cove, tiny gravel beach, pier, fish cages"
+k53,포항 구룡포,36.063294,129.574351,rock,2,0,open,short,0,1,mixed,0,0,1,2,"Rocky shore, coastal road, land-based fish tanks"
+k54,포항 칠포,36.133848,129.398305,sand,1,0,semi,long,0,0,mixed,1,0,1,3,"Long sand beach, rocky headland north, river south"
+k55,해남 묵동리,34.353639,126.611089,sand,1,0,semi,medium,0,0,natural,0,0,1,2,Narrow beach below farmland; rocky east headland
+k56,해남 송평,34.4475,126.457576,sand,1,0,semi,medium,1,0,natural,0,1,1,2,Sand beach below wooded headland; jetties at NW point
+k57,해남 예락,34.614391,126.282338,mud,1,1,semi,short,0,1,natural,0,0,1,2,Road-backed shore on mudflat; causeway bridge nearby
+k58,화성 서신,37.120018,126.68521,sand,0,0,semi,long,1,1,mixed,0,0,1,2,Narrow sand beach; offshore breakwater; port to south
+k6,고흥 염포,34.432709,127.49205,gravel,1,0,semi,medium,0,0,natural,0,1,1,1,"Grey narrow beach in bay, pine behind, longlines"
+k7,군산 선유도,35.824958,126.411863,sand,1,1,semi,long,1,1,mixed,0,1,1,2,Sand tombolo beach; harbor and longlines NE
+k8,남해 유구,34.74927,127.85085,gravel,1,0,semi,medium,0,0,natural,0,0,1,2,Gray pebble-like beach in bay; harbor just outside
+k9,당진 석문,37.035635,126.540821,sand,0,1,semi,long,0,1,mixed,1,0,1,2,Sand beach with wide sand flat; road along back

@@ -1,0 +1,3 @@
+﻿outer_seed,nested_R2,chosen
+0,0.189,"sqrt,huber,mono=1,d2,mcw5,l5 | linear,squared,mono=1,d3,mcw10,l5 | none,huber,mono=1,d3,mcw20,l5 | sqrt,squared,mono=1,d3,mcw10,l20 | none,squared,mono=1,d3,mcw10,l20"
+1,0.219,"none,huber,mono=1,d3,mcw20,l5 | none,huber,mono=0,d3,mcw5,l20 | sqrt,squared,mono=0,d3,mcw10,l20 | sqrt,huber,mono=1,d3,mcw5,l5 | none,huber,mono=1,d3,mcw5,l5"

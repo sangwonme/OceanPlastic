@@ -1,0 +1,12 @@
+﻿target,rows,R2,sd
+total,358,0.1,0.017
+per_session,358,0.081,0.031
+per_km,345,-0.027,0.028
+plastic/session,358,0.198,0.022
+fishing/session,358,0.183,0.025
+household/session,358,0.046,0.031
+natural/session,358,0.002,0.027
+items/session,358,0.069,0.019
+koem_weight,1713,0.469,0.007
+koem_count,1713,0.635,0.005
+"total (+세션 수 피처, 참고용)",358,0.453,0.011
