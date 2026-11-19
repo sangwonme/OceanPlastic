@@ -755,6 +755,126 @@ def a19(C, T, K, TK):
     section(f'A19 모델 선택 중첩 검증 — 새 지역 (fold마다 고른 모델: {pd.Series(picks).value_counts().to_dict()})', out, 'A19_nested_model')
 
 
+# ── A20 ────────────────────────────────────────────────────────────────────
+def a20(C, T, K, TK):
+    """모든 모델 방식 비교 — 같은 피처(USE_CLS)·라벨·검증. 설정은 미리 고정, 튜닝 없음.
+    점수는 AUC(순위)와 균형정확도(0.5 컷, 클래스 불균형 보정). 회귀→임계값은 예측 무게를 점수로 사용."""
+    from sklearn.pipeline import make_pipeline
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.svm import SVC
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.neural_network import MLPClassifier
+    from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, HistGradientBoostingClassifier
+    from sklearn.metrics import roc_auc_score, balanced_accuracy_score
+    from xgboost import XGBClassifier
+    from lightgbm import LGBMClassifier
+    from catboost import CatBoostClassifier
+    from train import load_features, label_high, high_quantile, spatial_groups, USE_CLS, PARAMS_CLS, PARAMS_FINAL
+    df, Tr = load_features(); y = Tr['total']; yb, thr = label_high(df, y, high_quantile())
+    X, cols = add_history(df, y), cols_of(USE_CLS)
+    imp = lambda: SimpleImputer(strategy='median', add_indicator=True)
+    pre = lambda *m: make_pipeline(imp(), StandardScaler(), *m)
+    M = {  # (계열, 생성자(seed, scale_pos_weight))
+        '로지스틱 회귀': ('선형', lambda s, w: pre(LogisticRegression(C=0.1, class_weight='balanced', max_iter=2000))),
+        'SVM (RBF)': ('커널', lambda s, w: pre(SVC(C=1.0, class_weight='balanced', probability=True, random_state=s))),
+        'k-최근접 이웃 (k=15)': ('거리', lambda s, w: pre(KNeighborsClassifier(15, weights='distance'))),
+        '나이브 베이즈': ('확률', lambda s, w: pre(GaussianNB())),
+        '신경망 MLP (16)': ('신경망', lambda s, w: pre(MLPClassifier((16,), alpha=1e-1, max_iter=2000, random_state=s))),
+        '랜덤 포레스트': ('배깅 트리', lambda s, w: make_pipeline(imp(), RandomForestClassifier(500, min_samples_leaf=5, max_features=0.5, class_weight='balanced_subsample', random_state=s, n_jobs=-1))),
+        'Extra Trees': ('배깅 트리', lambda s, w: make_pipeline(imp(), ExtraTreesClassifier(500, min_samples_leaf=5, max_features=0.5, class_weight='balanced', random_state=s, n_jobs=-1))),
+        'HistGradientBoosting': ('부스팅 트리', lambda s, w: HistGradientBoostingClassifier(max_depth=2, learning_rate=0.05, max_iter=200, l2_regularization=5.0, class_weight='balanced', random_state=s)),
+        'XGBoost (현재)': ('부스팅 트리', lambda s, w: XGBClassifier(**PARAMS_CLS, scale_pos_weight=w, random_state=s)),
+        'LightGBM': ('부스팅 트리', lambda s, w: LGBMClassifier(n_estimators=300, learning_rate=0.03, max_depth=2, num_leaves=4, min_child_samples=20, subsample=0.8, subsample_freq=1, colsample_bytree=0.5, reg_lambda=20, scale_pos_weight=w, random_state=s, verbose=-1)),
+        'CatBoost': ('부스팅 트리', lambda s, w: CatBoostClassifier(iterations=300, learning_rate=0.03, depth=3, l2_leaf_reg=20, auto_class_weights='Balanced', random_seed=s, verbose=0)),
+    }
+    rows = []
+    for split, g in [('새 지역', spatial_groups(df)), ('새 해변', df.loc_id.values)]:
+        auc = {k: [] for k in list(M) + ['회귀 → 임계값 (XGBoost 회귀)', '앙상블 (전 모델 순위 평균)']}; bal = {k: [] for k in auc}
+        for seed in SEEDS:
+            P = {k: np.zeros(len(yb)) for k in auc}
+            for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(X, yb, g):
+                w = (yb[tr] == 0).sum() / max((yb[tr] == 1).sum(), 1)
+                for k, (_, mk) in M.items():
+                    P[k][te] = mk(seed, w).fit(X.iloc[tr][cols], yb[tr]).predict_proba(X.iloc[te][cols])[:, 1]
+                reg = XGBRegressor(**PARAMS_FINAL, random_state=seed).fit(X.iloc[tr][cols], y.values[tr])
+                P['회귀 → 임계값 (XGBoost 회귀)'][te] = reg.predict(X.iloc[te][cols]) - thr + 0.5  # 기준 무게를 넘으면 >0.5
+            P['앙상블 (전 모델 순위 평균)'] = np.mean([pd.Series(P[k]).rank(pct=True).values for k in M], 0)
+            for k in auc:
+                auc[k].append(roc_auc_score(yb, P[k]))
+                cut = 0.5 if k != '앙상블 (전 모델 순위 평균)' else 1 - yb.mean()
+                bal[k].append(balanced_accuracy_score(yb, P[k] > cut))
+        for k in auc:
+            fam = M[k][0] if k in M else ('회귀 후 분류' if '회귀' in k else '앙상블')
+            rows.append(dict(split=split, model=k, family=fam, AUC=round(np.mean(auc[k]), 3), AUC_sd=round(np.std(auc[k]), 3),
+                             balanced_acc=round(np.mean(bal[k]), 3)))
+    out = pd.DataFrame(rows)
+    wide = out.pivot(index=['model', 'family'], columns='split', values=['AUC', 'AUC_sd', 'balanced_acc'])
+    wide.columns = [f'{a}_{b}' for a, b in wide.columns]
+    wide = wide.reset_index().sort_values('AUC_새 지역', ascending=False)
+    section('A20 전체 모델 비교 — 세션당 총무게 \'많음\' 분류 (5-fold × 3 seed, 주 지표 = 새 지역 AUC)', wide, 'A20_all_models')
+
+
+# ── 리포트 그림 ─────────────────────────────────────────────────────────────
+def figures(*_):
+    """report.md용 그림 2장 (A20, A16 결과 CSV에서). 색: 기준 팔레트 1·2번 슬롯 (검증 통과)."""
+    import matplotlib; matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    S1, S2, INK, INK2, GRID, SURF = '#2a78d6', '#eb6834', '#0b0b0b', '#52514e', '#e4e3df', '#fcfcfb'
+    plt.rcParams.update({'font.family': 'Malgun Gothic', 'axes.unicode_minus': False, 'font.size': 10,
+                         'axes.edgecolor': GRID, 'axes.labelcolor': INK2, 'xtick.color': INK2, 'ytick.color': INK,
+                         'figure.facecolor': SURF, 'axes.facecolor': SURF, 'savefig.facecolor': SURF})
+    Path('figures').mkdir(exist_ok=True)
+
+    # 1) 모델별 AUC: 새 지역(주 지표, 오차막대) vs 새 해변(참고)
+    m = pd.read_csv(OUT / 'A20_all_models.csv').sort_values('AUC_새 지역')
+    fig, ax = plt.subplots(figsize=(8, 6.2))
+    yy = np.arange(len(m))
+    ax.hlines(yy, m['AUC_새 지역'], m['AUC_새 해변'], color=GRID, lw=2, zorder=1)
+    ax.errorbar(m['AUC_새 지역'], yy, xerr=m['AUC_sd_새 지역'], fmt='o', ms=8, color=S1, ecolor=S1, elinewidth=2,
+                capsize=0, zorder=3, label='새 지역 (주 지표: 10km 안에 학습 해변 없음)')
+    ax.plot(m['AUC_새 해변'], yy, 'o', ms=8, mfc=SURF, mec=S2, mew=2, zorder=2, label='새 해변 (참고: 이웃 해변은 학습됨)')
+    for i, v, e in zip(yy, m['AUC_새 지역'], m['AUC_sd_새 지역']):
+        ax.text(v - e - 0.006, i, f'{v:.3f}', va='center', ha='right', color=INK, fontsize=9)
+    ax.axvline(0.5, color=INK2, lw=1, ls='--'); ax.text(0.503, -0.75, '무작위 = 0.5', color=INK2, fontsize=8.5)
+    ax.set_yticks(yy, m.model); ax.set_xlim(0.4, 0.86); ax.set_ylim(-1.1, len(m) - 0.5); ax.set_xlabel('AUC (높을수록 좋음)')
+    ax.tick_params(axis='y', length=0)
+    ax.grid(axis='x', color=GRID, lw=0.8); ax.set_axisbelow(True)
+    for s in ('top', 'right', 'left'): ax.spines[s].set_visible(False)
+    ax.legend(loc='lower right', frameon=False, fontsize=9)
+    ax.set_title("모델별 '쓰레기 많음' 판정 성능 (5-fold × 3회, 막대 = ±1 표준편차)", loc='left', color=INK, fontsize=11)
+    fig.tight_layout(); fig.savefig('figures/model_comparison.png', dpi=150); plt.close(fig)
+
+    # 2) 피처 중요도: 새 지역에서 그 피처를 섞었을 때 AUC 하락
+    names = {'t_rock': '암반 정도 (위성)', 'month_sin': '계절 (봄 쪽)', 'visitors_log': '해수욕장 이용객 수', 't_urban': '배후 도시화 (위성)',
+             'summer_days': '해수욕 시즌 일수', 'year': '연도', 'tide_spring_day': '수거일 사리 여부', 'month_cos': '계절 (겨울 쪽)',
+             'tide_spring_win': '구간 사리 비율', 't_tidal_flat': '갯벌 (위성)', 't_armored': '호안·도로 (위성)',
+             'gap_days': '직전 수거 후 경과일', 't_beach_len': '해변 길이 (위성)'}
+    f = pd.read_csv(OUT / 'A16_importance.csv')
+    f = pd.concat([f.head(8), f.tail(3)]).iloc[::-1]
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    col = [S1 if v > 0 else '#b5b3ad' for v in f.perm_AUC_drop]
+    ax.barh(np.arange(len(f)), f.perm_AUC_drop, xerr=f.perm_sd, color=col, height=0.6, error_kw=dict(ecolor=INK2, lw=1))
+    ax.set_yticks(np.arange(len(f)), [names.get(c, c) for c in f.feature])
+    up = {'t_rock': '바위가 많을수록', 'month_sin': '봄(2–4월)일수록', 'visitors_log': '이용객이 많을수록', 't_urban': '도시화될수록',
+          'summer_days': '여름이 낀 구간일수록', 'year': '최근일수록', 'tide_spring_day': '사리 날일수록', 'month_cos': '겨울일수록',
+          'tide_spring_win': '사리 비율이 높을수록', 't_tidal_flat': '갯벌이 있으면'}
+    for i, (c, v, e, d) in enumerate(zip(f.feature, f.perm_AUC_drop, f.perm_sd, f.direction)):
+        lab = (f"{up.get(c, c)} {'많음' if '많음↑' in d else '적음'}" if v > 0 else '새 지역에선 노이즈 (섞으면 오히려 좋아짐)')
+        ax.text(max(v + e, 0) + 0.003, i, lab, va='center', color=INK2, fontsize=8.5)
+    ax.tick_params(axis='y', length=0)
+    ax.axvline(0, color=INK2, lw=1)
+    ax.set_xlabel('테스트 지역에서 섞었을 때 AUC 하락 (클수록 중요)')
+    ax.grid(axis='x', color=GRID, lw=0.8); ax.set_axisbelow(True)
+    for s in ('top', 'right', 'left'): ax.spines[s].set_visible(False)
+    ax.set_title('무엇이 판정에 영향을 줬나 — XGBoost, 새 지역 검증 (permutation 중요도)', loc='left', color=INK, fontsize=11)
+    ax.set_xlim(-0.065, 0.11)
+    fig.tight_layout(); fig.savefig('figures/feature_importance.png', dpi=150); plt.close(fig)
+    print('figures/model_comparison.png, figures/feature_importance.png')
+
+
 if __name__ == '__main__':
     import sys
     C, T, K, TK = load_all()
