@@ -788,7 +788,7 @@ def a20(C, T, K, TK):
         'HistGradientBoosting': ('부스팅 트리', lambda s, w: HistGradientBoostingClassifier(max_depth=2, learning_rate=0.05, max_iter=200, l2_regularization=5.0, class_weight='balanced', random_state=s)),
         'XGBoost (현재)': ('부스팅 트리', lambda s, w: XGBClassifier(**PARAMS_CLS, scale_pos_weight=w, random_state=s)),
         'LightGBM': ('부스팅 트리', lambda s, w: LGBMClassifier(n_estimators=300, learning_rate=0.03, max_depth=2, num_leaves=4, min_child_samples=20, subsample=0.8, subsample_freq=1, colsample_bytree=0.5, reg_lambda=20, scale_pos_weight=w, random_state=s, verbose=-1)),
-        'CatBoost': ('부스팅 트리', lambda s, w: CatBoostClassifier(iterations=300, learning_rate=0.03, depth=3, l2_leaf_reg=20, auto_class_weights='Balanced', random_seed=s, verbose=0)),
+        'CatBoost': ('부스팅 트리', lambda s, w: CatBoostClassifier(iterations=300, learning_rate=0.03, depth=3, l2_leaf_reg=20, auto_class_weights='Balanced', random_seed=s, verbose=0, allow_writing_files=False)),
     }
     rows = []
     for split, g in [('새 지역', spatial_groups(df)), ('새 해변', df.loc_id.values)]:
