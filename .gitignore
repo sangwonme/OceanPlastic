@@ -14,3 +14,6 @@ outputs/cache/
 outputs/*.log
 __pycache__/
 catboost_info/
+dataset/tides/
+outputs/tides_features.csv
+dataset/geo/site_labels_tides.csv

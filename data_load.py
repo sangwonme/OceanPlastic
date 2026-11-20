@@ -60,6 +60,12 @@ def load_beaches():
     return b
 
 
+def load_labels():
+    """위성 판독 라벨. TIDES 지점은 원자료 재배포 범위가 불분명해 별도 파일(저장소 제외)."""
+    fs = [D / 'geo/site_labels.csv', D / 'geo/site_labels_tides.csv']
+    return pd.concat([pd.read_csv(f) for f in fs if f.exists()], ignore_index=True)
+
+
 def load_geo():
     ports = pd.read_csv(D / 'geo/fishing_ports.csv')
     ports = ports[ports.type.isin(['국가어항', '지방어항'])]  # 전국 기준이 같은 등급만
@@ -73,7 +79,7 @@ def load_geo():
         ring = np.array(f['geometry']['coordinates'][0])
         land.append((MplPath(ring), ring.min(0), ring.max(0)))
     visitors = pd.read_csv(D / 'geo/beach_visitors.csv')
-    labels = pd.read_csv(D / 'geo/site_labels.csv')
+    labels = load_labels()
     return dict(ports=ports, rivers=pd.read_csv(D / 'geo/river_mouths.csv'), farms=farms,
                 koem_prior=koem_prior, land=land, visitors=visitors, labels=labels)
 
@@ -135,6 +141,58 @@ def build_koem_target():
     ids = {n: f'k{i}' for i, n in enumerate(sorted(k.station_name.unique()))}
     k['loc_id'] = k.station_name.map(ids)
     return k
+
+
+def sea_dist_km(locs, land, max_km=3.0):
+    """가장 가까운 바다까지 대략 거리(16방위 × 0.25km 간격, Natural Earth 육지). max_km 안에 바다가 없으면 inf."""
+    ang = np.arange(N_DIR) * 2 * np.pi / N_DIR
+    dist = np.arange(0, max_km + 0.01, 0.25)
+    dd, out = np.tile(dist, N_DIR), np.full(len(locs), np.inf)
+    for i, (la, lo) in enumerate(zip(locs.lat, locs.lng)):
+        pts = np.c_[(lo + np.sin(ang)[:, None] * dist[None] / (111.32 * np.cos(np.radians(la)))).ravel(),
+                    (la + np.cos(ang)[:, None] * dist[None] / 110.57).ravel()]
+        on = np.zeros(len(pts), bool)
+        for p, lo_, hi_ in land:
+            if lo_[0] < lo + 0.05 and hi_[0] > lo - 0.05 and lo_[1] < la + 0.05 and hi_[1] > la - 0.05:
+                on |= p.contains_points(pts)
+        if (~on).any():
+            out[i] = dd[~on].min()
+    return out
+
+
+def build_tides_target(s, land):
+    """TIDES(Ocean Conservancy) 한국 정화 기록 → 지점 × 일. 1km 안 기록은 한 지점. 기록 1건 = 세션 1건.
+    2023년 이전은 바다/내륙 표시가 비어 있어 '내륙·민물'로 적힌 것만 빼고, 3km 안에 바다가 없는 지점은 위치로 뺀다.
+    반려해변 세션과 같은 날·1km 안이면 중복으로 뺀다."""
+    t = pd.concat([pd.read_csv(f) for f in sorted((D / 'tides').glob('*.csv'))]).drop_duplicates('Cleanup ID')
+    t = t[~t.Environment.isin(['inland', 'freshwater']) & t['Cleanup Type'].eq('land')]
+    t = t.rename(columns={'Latitude': 'lat', 'Longitude': 'lng'})
+    num = lambda c: pd.to_numeric(t[c].astype(str).str.replace(',', ''), errors='coerce')
+    t = t.assign(date=pd.to_datetime(t['Cleanup Date']).dt.normalize(), total_weight_g=num('Pounds') * 453.6,
+                 item_count=num('Total Items Collected'), people=t.People)
+    t = t.dropna(subset=['lat', 'lng', 'total_weight_g'])
+    t = t[in_box(t)]
+    # '해안 정화'로 적혔지만 위성 판독에서 해안이 아니라고 나온 지점(도심·내륙·먼바다)은 뺀다
+    bad = load_labels().query('marker_ok == 0')
+    bad = bad[bad.loc_id.str.startswith('tides_')]
+    if len(bad):
+        t = t[dist_matrix(t, bad).min(1) >= 1]
+    dup =[((s.day == d) & (haversine(la, lo, s.lat, s.lng) < 1)).any() for d, la, lo in zip(t.date, t.lat, t.lng)]
+    t = t[~np.array(dup, bool)]
+    sites, ids = [], []  # ponytail: 탐욕적 1km 묶음 — 기록 순서에 따라 경계가 조금 달라질 수 있음
+    for la, lo in zip(t.lat, t.lng):
+        d = haversine(la, lo, *np.array(sites).T) if sites else np.array([])
+        if len(d) and d.min() < 1:
+            ids.append(int(d.argmin()))
+        else:
+            sites.append((la, lo)); ids.append(len(sites) - 1)
+    near = sea_dist_km(pd.DataFrame(sites, columns=["lat", "lng"]), land) <= 3  # 해안선이 거칠어 반려해변 해변도 최대 2.75km — 정확한 판정은 위성 판독
+    t = t[near[ids]].assign(loc_id=[f't{i}' for i in np.array(ids)[near[ids]]])
+    g = t.groupby(['loc_id', 'date'])
+    k = g[['total_weight_g', 'item_count', 'people']].sum().assign(n_sessions=g.size()).reset_index()
+    k = k.merge(t.groupby('loc_id')[['lat', 'lng']].mean().reset_index(), on='loc_id')
+    k['prev_day'] = k.groupby('loc_id').date.shift()
+    return finish_target(k, 'loc_id')
 
 
 def finish_target(t, key):
@@ -233,7 +291,13 @@ def build_lookup(locs, geo):
     dk = dist_matrix(lk, geo['koem_prior'])
     lk['koem_prior_kg'] = geo['koem_prior'].weight_kg.values[dk.argmin(1)]
 
-    lk = lk.merge(encode_labels(geo['labels']), on='loc_id', how='left')
+    enc = encode_labels(geo['labels'])
+    lk = lk.merge(enc, on='loc_id', how='left')
+    miss = lk.t_rock.isna().values
+    if miss.any():  # loc_id로 안 붙는 지점(TIDES — 묶음 번호가 자료에 따라 바뀜)은 1km 안 가장 가까운 판독 지점 라벨
+        d = dist_matrix(lk[miss], geo['labels'])
+        ok, j, tc = d.min(1) < 1, d.argmin(1), enc.columns.drop('loc_id')
+        lk.loc[np.flatnonzero(miss)[ok], tc] = enc.iloc[j[ok]][tc].values
     lk['visitors_log'], lk['is_designated'] = np.nan, 0
     if 'beach_name' in lk:
         v = geo['visitors']
@@ -384,5 +448,16 @@ def main():
         print('  NA%:', (X.isna().mean() * 100).round(1)[lambda v: v > 0].to_dict())
 
 
+def tides():
+    """TIDES 피처 → outputs/tides_features.csv. 분류 피처(USE_CLS)에 날씨가 없어 ERA5 창 집계는 생략."""
+    geo = load_geo()
+    k = build_tides_target(load_sessions(), geo['land']); show('tides target', k)
+    lk = build_lookup(k.drop_duplicates('loc_id')[['loc_id', 'lat', 'lng']].reset_index(drop=True), geo)
+    X = add_calendar(k.drop(columns=['lat', 'lng']).merge(lk[['loc_id', 'lat', 'lng'] + STATIC], on='loc_id'))
+    X.to_csv(OUT / 'tides_features.csv', index=False, encoding='utf-8-sig')
+    print(f'→ {OUT / "tides_features.csv"} {X.shape}, locations {X.loc_id.nunique()}')
+
+
 if __name__ == '__main__':
-    main()
+    import sys
+    tides() if sys.argv[1:] == ['tides'] else main()

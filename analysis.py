@@ -823,6 +823,276 @@ def a20(C, T, K, TK):
     section('A20 전체 모델 비교 — 세션당 총무게 \'많음\' 분류 (5-fold × 3 seed, 주 지표 = 새 지역 AUC)', wide, 'A20_all_models')
 
 
+# ── A21 ────────────────────────────────────────────────────────────────────
+def a21(C, T, K, TK):
+    """데이터 수집 방식 모의. 새로 모을 수는 없으니 있는 데이터로 흉내 낸다: 학습 데이터를 줄여 기울기를 재거나(1·2),
+    KOEM(고정 100m 조사선)에 미기록 노력 편차를 합성하거나(3), 이미 있는 개수·카테고리로 라벨을 바꾼다(4·5).
+    평가는 모두 동일: '많음' 분류 AUC, 새 지역(10km 묶음) GroupKFold 5-fold × 3 seed, 피처 USE_CLS, 현재 XGBoost.
+    테스트 fold는 고정하고 학습 fold만 바꾼다 → 조건끼리 같은 테스트셋으로 짝지어 비교."""
+    import glob
+    from sklearn.metrics import roc_auc_score
+    from xgboost import XGBClassifier
+    from train import (load_features, label_high, high_quantile, spatial_groups, USE_CLS, PARAMS_CLS, PARAMS_FINAL,
+                       TARGETS, EU_BASELINE)
+    df, Tr = load_features(); q, cols = high_quantile(), cols_of(USE_CLS)
+    dK = K[K.count_ea.notna()].reset_index(drop=True)
+    gC, gK, locC, locK = spatial_groups(df), spatial_groups(dK), df.loc_id.values, dK.loc_id.values
+    rows, used = [], []
+
+    def fit_cls(X, y, tr, te, seed):
+        if y[tr].min() == y[tr].max():  # 줄인 학습셋에 양성이 없으면 순위 정보 없음
+            return np.full(len(te), 0.5)
+        spw = (y[tr] == 0).sum() / max((y[tr] == 1).sum(), 1)
+        return XGBClassifier(**PARAMS_CLS, scale_pos_weight=spw, random_state=seed).fit(
+            X.iloc[tr][cols], y[tr]).predict_proba(X.iloc[te][cols])[:, 1]
+
+    def cv(X, yb, g, pick=None, reps=1, score=None, ytr=None):
+        """ytr: 학습 라벨이 평가 라벨과 다를 때 (합성 노이즈를 학습에만)."""
+        yb = np.asarray(yb); ytr = yb if ytr is None else np.asarray(ytr); aucs, n = [], []
+        for seed in SEEDS:
+            for r in range(reps):
+                rng, p = np.random.default_rng(1000 * seed + r), np.zeros(len(yb))
+                for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(X, yb, g):
+                    tr = pick(tr, rng) if pick else tr; n.append(len(tr))
+                    p[te] = score(tr, te, seed) if score else fit_cls(X, ytr, tr, te, seed)
+                aucs.append(roc_auc_score(yb, p))
+        return dict(pos_rate=round(yb.mean(), 3), train_rows=round(np.mean(n)), AUC=round(np.mean(aucs), 3), AUC_sd=round(np.std(aucs), 3))
+
+    def add(exp, cond, r, note=''):
+        rows.append(dict(experiment=exp, condition=cond, **r, units=round(np.mean(used), 1) if used else None, note=note))
+        used.clear()
+
+    def cap(loc, k):  # 해변 집합은 그대로, 해변당 기록만 최대 k건
+        def pick(tr, rng):
+            tr = rng.permutation(tr); tr = tr[pd.Series(loc[tr]).groupby(loc[tr]).cumcount().values < k]
+            used.append(len(np.unique(loc[tr]))); return tr
+        return pick
+
+    def m_by_v(loc, m, v):  # 같은 예산을 m곳 × v회로
+        def pick(tr, rng):
+            tr = rng.permutation(tr); L = loc[tr]
+            keep = np.isin(L, rng.permutation(np.unique(L))[:m]) & (pd.Series(L).groupby(L).cumcount().values < v)
+            used.append(len(np.unique(L[keep]))); return tr[keep]
+        return pick
+
+    def budget(grp, n, spread):  # 같은 행 수를 여러 지역에 고루(round-robin) vs 지역 통째로 몇 곳만
+        def pick(tr, rng):
+            tr = rng.permutation(tr); G = grp[tr]
+            if spread:
+                key = pd.Series(G).groupby(G).cumcount().values
+            else:
+                order = rng.permutation(np.unique(G)); key = pd.Series(G).map(pd.Series(range(len(order)), index=order)).values
+            tr = tr[np.argsort(key, kind='stable')[:n]]; used.append(len(np.unique(grp[tr]))); return tr
+        return pick
+
+    # 0) 기준
+    yb, _ = label_high(df, Tr['total'], q); ybK = (dK.count_ea.values > EU_BASELINE).astype(int)
+    bC, bK = cv(df, yb, gC), cv(dK, ybK, gK)
+    add('0 기준', '반려해변: 세션당 총무게 상위 14% (현재)', bC); add('0 기준', 'KOEM: 100m당 개수 > 287', bK)
+
+    # 1) 반복 수거: 해변 고정, 횟수만 변화 / 같은 예산에서 곳 수 × 횟수
+    E1 = '1 반복 수거 (해변 고정, 해변당 기록 수만 변화)'
+    for k in [1, 2, 3]:
+        add(E1, f'반려해변 해변당 최대 {k}건', cv(df, yb, gC, cap(locC, k), reps=5))
+    add(E1, '반려해변 전부 (해변당 중앙값 2건)', bC)
+    for k in [1, 2, 4, 8, 16]:
+        add(E1, f'KOEM 정점당 최대 {k}건', cv(dK, ybK, gK, cap(locK, k), reps=5))
+    add(E1, 'KOEM 전부 (정점당 중앙값 29건)', bK)
+    for m, v in [(47, 2), (24, 4), (12, 8), (47, 8), (24, 16), (12, 32)]:
+        add('1b 같은 예산: 곳 수 × 반복 횟수 (KOEM)', f'{m}곳 × {v}회', cv(dK, ybK, gK, m_by_v(locK, m, v), reps=5))
+
+    # 2) 지역 넓히기: 같은 행 수를 여러 지역에 고루 vs 몇 지역에 몰아서
+    E2 = '2 같은 행 수: 여러 지역 vs 몇 지역 집중'
+    for X, y, g, ns, name in [(df, yb, gC, [60, 120], '반려해변'), (dK, ybK, gK, [100, 400], 'KOEM')]:
+        for n in ns:
+            for spread in (True, False):
+                add(E2, f'{name} {n}행 · {"여러 지역에 고루" if spread else "몇 지역에 몰아서"}', cv(X, y, g, budget(g, n, spread), reps=5))
+
+    # 3) 노력량 기록: KOEM 개수에 미기록 노력 편차 exp(N(0,σ))를 곱해 라벨을 만든다. σ 기준 = 반려해변 세션별 수거 거리의 로그 편차
+    ld = np.log(pd.read_csv(glob.glob('dataset/caresea/sessions_*.csv')[0]).distance_km.dropna().clip(lower=0.01))
+    sig_ref = (ld.quantile(.75) - ld.quantile(.25)) / 1.349
+    for sig in [0.0, 0.5, sig_ref]:
+        a, b = [], []
+        for d in range(3):
+            noisy = np.log1p(dK.count_ea.values) + np.random.default_rng(d).normal(0, sig, len(dK))
+            ybn = (noisy > np.quantile(noisy, 1 - ybK.mean())).astype(int)
+            a.append(cv(dK, ybn, gK)['AUC']); b.append(cv(dK, ybK, gK, ytr=ybn)['AUC'])
+        add('3 노력량 미기록 편차 (KOEM에 합성)', f'σ = {sig:.2f}' + (' (반려해변 세션별 거리 편차 수준)' if sig == sig_ref else ''),
+            dict(pos_rate=round(ybK.mean(), 3), train_rows=bK['train_rows'], AUC=round(np.mean(a), 3), AUC_sd=round(np.std(a), 3)),
+            note=f'참 라벨로 평가하면 {np.mean(b):.3f}')
+    ps = df.distance_km / df.n_sessions; sub = df[ps.between(0.05, 3).values].reset_index(drop=True); gS = spatial_groups(sub)
+    for name, w in [('세션당 무게', sub.n_sessions), ('km당 무게', sub.distance_km)]:
+        ys, _ = label_high(sub, np.log1p(sub.total_weight_g / w), q)
+        add('3b 노력 단위 (거리 0.05~3km/세션 기록 행만)', name, cv(sub, ys, gS))
+
+    # 4) 개수로 라벨: 같은 행에서 개수 vs 무게
+    E4 = '4 개수 vs 무게 라벨 (같은 행, 같은 양성 비율)'
+    w = np.log1p(dK.weight_kg.fillna(dK.weight_kg.median()).values)
+    add(E4, 'KOEM 무게 상위 18.9%', cv(dK, (w > np.quantile(w, 1 - ybK.mean())).astype(int), gK)); add(E4, 'KOEM 개수 > 287 (= 기준)', bK)
+    yi, _ = label_high(df, np.log1p(df.item_count / df.n_sessions), q)
+    add(E4, '반려해변 세션당 개수 상위 14%', cv(df, yi, gC))
+    yeu = ((sub.item_count / (sub.distance_km * 10)) > EU_BASELINE).astype(int).values
+    add(E4, '반려해변 100m당 개수 > 287 (EU 기준선 직접, 거리 기록 행)', cv(sub, yeu, gS))
+
+    # 5) 어구 분리 기록: 이미 있는 카테고리로 나눠 본다
+    E5 = '5 어구(그물·로프·부표) 분리'
+    s = df.n_sessions; gear = df[TARGETS['fishing']].sum(1); non = (df.total_weight_g - gear).clip(lower=0)
+    yg, _ = label_high(df, np.log1p(gear / s), q); yn, _ = label_high(df, np.log1p(non / s), q)
+    add(E5, '라벨: 어구만 세션당 상위 14%', cv(df, yg, gC)); add(E5, '라벨: 어구 제외 세션당 상위 14%', cv(df, yn, gC))
+    lg, ln, lt = np.log1p(gear / s).values, np.log1p(non / s).values, Tr['total'].values
+    reg = lambda t, tr, te, seed: XGBRegressor(**PARAMS_FINAL, random_state=seed).fit(df.iloc[tr][cols], t[tr]).predict(df.iloc[te][cols])
+    add(E5, '현재 라벨 · 분해 회귀 (어구 + 비어구 예측 무게 합)', cv(df, yb, gC, score=lambda tr, te, sd: np.expm1(reg(lg, tr, te, sd)) + np.expm1(reg(ln, tr, te, sd))))
+    add(E5, '현재 라벨 · 비교: 총무게 직접 회귀', cv(df, yb, gC, score=lambda tr, te, sd: reg(lt, tr, te, sd)))
+    add(E5, '현재 라벨 · 분해 분류 (P(어구 많음) + P(비어구 많음))', cv(df, yb, gC, score=lambda tr, te, sd: fit_cls(df, yg, tr, te, sd) + fit_cls(df, yn, tr, te, sd)))
+    section(f'A21 데이터 수집 방식 모의 — 새 지역 AUC (기준 반려해변 {bC["AUC"]} / KOEM {bK["AUC"]}), units = 학습에 쓰인 해변·지역 수',
+            pd.DataFrame(rows), 'A21_data_collection')
+
+
+# ── A22 ────────────────────────────────────────────────────────────────────
+def a22(C, T, K, TK):
+    """TIDES(Ocean Conservancy) 한국 기록을 학습에 더하면 반려해변 새 지역 AUC가 오르나 (`python data_load.py tides` 먼저).
+    테스트 = 반려해변 새 지역 fold 그대로 (A21과 같은 테스트셋). TIDES 행은 학습에만 넣고, 그 fold 테스트 해변 10km 안의
+    TIDES 지점은 뺀다 (새 지역 원칙). TIDES는 지형 라벨이 아직 없어 지형 포함 조건에서는 결측.
+    TIDES 라벨: 분위 대응(자체 분포에서 반려해변과 같은 양성 비율) / 절대 기준(반려해변 77kg/회 그대로).
+    외부 검증: 반려해변 전체로 학습 → TIDES 전부 예측, 95% CI는 지점 단위 bootstrap."""
+    from sklearn.metrics import roc_auc_score
+    from xgboost import XGBClassifier
+    from train import load_features, label_high, high_quantile, spatial_groups, USE_CLS, PARAMS_CLS, CLUSTER_KM
+    df, Tr = load_features(); yb, thr = label_high(df, Tr['total'], high_quantile()); gC = spatial_groups(df)
+    tf = pd.read_csv('outputs/tides_features.csv', parse_dates=['date'])
+    yT = np.log1p(tf.total_weight_g / tf.n_sessions).values
+    labs = {'분위 대응': (yT > np.quantile(yT, 1 - yb.mean())).astype(int), '절대 77kg': (yT > thr).astype(int)}
+    D = dl.dist_matrix(tf, df)  # TIDES 행 × 반려해변 행
+    full, noterr = cols_of(USE_CLS), cols_of([b for b in USE_CLS if b != 'terrain'])
+
+    def fit(X, y, seed):
+        spw = (y == 0).sum() / max((y == 1).sum(), 1)
+        return XGBClassifier(**PARAMS_CLS, scale_pos_weight=spw, random_state=seed).fit(X, y)
+
+    def cv(cols, yt=None):
+        aucs, added = [], []
+        for seed in SEEDS:
+            p = np.zeros(len(yb))
+            for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(df, yb, gC):
+                X, y = df.iloc[tr][cols], yb[tr]
+                if yt is not None:
+                    keep = D[:, te].min(1) > CLUSTER_KM
+                    X, y = pd.concat([X, tf.loc[keep, cols]]), np.r_[y, yt[keep]]; added.append(keep.sum())
+                p[te] = fit(X, y, seed).predict_proba(df.iloc[te][cols])[:, 1]
+            aucs.append(roc_auc_score(yb, p))
+        return dict(AUC=round(np.mean(aucs), 3), AUC_sd=round(np.std(aucs), 3), tides_rows=round(np.mean(added)) if added else 0)
+
+    def cv_time(cols, yt=None, cutoffs=('2024-07-01', '2025-01-01', '2025-07-01', '2026-01-01'), months=6):
+        """시간도 분리: 기준일 이전 자료로만 학습 → 기준일부터 6개월, 새 지역 행 예측. 같은 날짜 정보(다른 지역의 같은 주
+        수거량)를 못 쓰게 해서, 미래 예측에서도 남는 이득인지 본다."""
+        aucs = []
+        for seed in SEEDS:
+            P, L = [], []
+            for c in pd.to_datetime(cutoffs):
+                win = ((df.date >= c) & (df.date < c + pd.DateOffset(months=months))).values
+                for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(df, yb, gC):
+                    te, tr = te[win[te]], tr[df.date.values[tr] < c]
+                    if not len(te):
+                        continue
+                    X, y = df.iloc[tr][cols], yb[tr]
+                    if yt is not None:
+                        keep = (D[:, te].min(1) > CLUSTER_KM) & (tf.date.values < c)
+                        X, y = pd.concat([X, tf.loc[keep, cols]]), np.r_[y, yt[keep]]
+                    P.append(fit(X, y, seed).predict_proba(df.iloc[te][cols])[:, 1]); L.append(yb[te])
+            aucs.append(roc_auc_score(np.concatenate(L), np.concatenate(P)))
+        return dict(AUC=round(np.mean(aucs), 3), AUC_sd=round(np.std(aucs), 3), test_rows=len(np.concatenate(L)))
+
+    def boot_ci(y, p, g, n=1000):
+        rng, u, out = np.random.default_rng(0), np.unique(g), []
+        for _ in range(n):
+            idx = np.concatenate([np.flatnonzero(g == c) for c in rng.choice(u, len(u))])
+            if y[idx].min() != y[idx].max():
+                out.append(roc_auc_score(y[idx], p[idx]))
+        return f'{np.percentile(out, 2.5):.3f}–{np.percentile(out, 97.5):.3f}'
+
+    rows = []
+    for fname, cols in [('지형 포함', full), ('지형 제외', noterr)]:
+        rows.append(dict(test='반려해변 새 지역', features=fname, train='반려해변만', **cv(cols)))
+        for lname, yt in labs.items():
+            rows.append(dict(test='반려해변 새 지역', features=fname, train=f'+ TIDES ({lname})', **cv(cols, yt)))
+        rows.append(dict(test='반려해변 새 지역 + 미래 6개월', features=fname, train='반려해변만', **cv_time(cols)))
+        rows.append(dict(test='반려해변 새 지역 + 미래 6개월', features=fname, train='+ TIDES (절대 77kg)', **cv_time(cols, labs['절대 77kg'])))
+        for lname, yt in labs.items():
+            p = np.mean([fit(df[cols], yb, s).predict_proba(tf[cols])[:, 1] for s in SEEDS], 0)
+            rows.append(dict(test=f'TIDES 외부 ({lname}, 양성 {yt.sum()}/{len(yt)})', features=fname, train='반려해변만',
+                             AUC=round(roc_auc_score(yt, p), 3), AUC_sd=None, tides_rows=0, CI95=boot_ci(yt, p, tf.loc_id.values)))
+    section(f'A22 TIDES 추가 효과 — TIDES {len(tf)}행 · {tf.loc_id.nunique()}지점 '
+            f'({tf.date.min():%Y-%m}~{tf.date.max():%Y-%m}), 반려해변 테스트셋은 A21과 동일', pd.DataFrame(rows), 'A22_tides')
+
+
+# ── A23 ────────────────────────────────────────────────────────────────────
+def a23(C, T, K, TK):
+    """주 검증(원칙 8): 처음 보는 시기 + 처음 보는 지역. 기준일(반년마다)마다 그 이전 자료로만 학습 → 이후 6개월 동안
+    새 지역(10km 묶음) 해변 예측. 점수 = 기간 안 쌍 AUC(같은 기간의 많음·적음 쌍만 비교 = 기간별 AUC를 쌍 수로 가중 평균).
+    비교: 반려해변만 vs + TIDES(77kg/회). 주 조건 = 현재 피처(USE_CLS, 지형 포함) — 미리 정함. 차이의 95% CI는 시험 지역 묶음 bootstrap."""
+    from sklearn.metrics import roc_auc_score
+    from xgboost import XGBClassifier
+    from train import load_features, label_high, high_quantile, spatial_groups, USE_CLS, PARAMS_CLS, CLUSTER_KM
+    df, Tr = load_features(); yb, thr = label_high(df, Tr['total'], high_quantile()); gC = spatial_groups(df)
+    tf = pd.read_csv('outputs/tides_features.csv', parse_dates=['date'])
+    yt = (np.log1p(tf.total_weight_g / tf.n_sessions).values > thr).astype(int)
+    D, dates = dl.dist_matrix(tf, df), df.date.values
+    cutoffs = pd.date_range('2023-01-01', '2026-01-01', freq='6MS')
+    win_of = np.full(len(df), -1)
+    for w, c in enumerate(cutoffs):
+        win_of[((df.date >= c) & (df.date < c + pd.DateOffset(months=6))).values] = w
+
+    def predict(cols, use_t):
+        """행별 예측 확률(seed 평균). 각 행은 자기 기간에서 한 번씩만 예측된다."""
+        P = np.zeros((len(SEEDS), len(df))); n_t = np.zeros(len(cutoffs))
+        for s, seed in enumerate(SEEDS):
+            for w, c in enumerate(cutoffs):
+                for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(df, yb, gC):
+                    te, tr = te[win_of[te] == w], tr[dates[tr] < c]
+                    if not len(te):
+                        continue
+                    X, y = df.iloc[tr][cols], yb[tr]
+                    if use_t:
+                        k = (D[:, te].min(1) > CLUSTER_KM) & (tf.date.values < c)
+                        X, y = pd.concat([X, tf.loc[k, cols]]), np.r_[y, yt[k]]; n_t[w] = max(n_t[w], k.sum())
+                    if y.min() == y.max():
+                        P[s, te] = 0.5; continue
+                    m = XGBClassifier(**PARAMS_CLS, scale_pos_weight=(y == 0).sum() / max((y == 1).sum(), 1), random_state=seed)
+                    P[s, te] = m.fit(X, y).predict_proba(df.iloc[te][cols])[:, 1]
+        return P.mean(0), n_t
+
+    def pair_auc(p, idx):
+        """기간 안 쌍 AUC: 기간별 AUC를 (양성 수 × 음성 수)로 가중 평균."""
+        num = den = 0.0
+        for w in range(len(cutoffs)):
+            i = idx[win_of[idx] == w]; y = yb[i]
+            if 0 < y.sum() < len(y):
+                pairs = y.sum() * (len(y) - y.sum()); num += roc_auc_score(y, p[i]) * pairs; den += pairs
+        return num / den
+
+    tested = np.flatnonzero(win_of >= 0); rows = []
+    for fname, cols in [('지형 포함 (주 조건)', cols_of(USE_CLS)), ('지형 제외 (참고)', cols_of([b for b in USE_CLS if b != 'terrain']))]:
+        pa, _ = predict(cols, False); pb, n_t = predict(cols, True)
+        for w, c in enumerate(cutoffs):
+            i = tested[win_of[tested] == w]; y = yb[i]
+            ok = 0 < y.sum() < len(y)
+            rows.append(dict(features=fname, window=f'{c:%Y-%m}~+6개월', test_rows=len(i), positives=int(y.sum()),
+                             train_tides=int(n_t[w]), AUC_caresea=round(roc_auc_score(y, pa[i]), 3) if ok else None,
+                             AUC_with_tides=round(roc_auc_score(y, pb[i]), 3) if ok else None))
+        rng, cl = np.random.default_rng(0), np.unique(gC[tested]); diffs = []
+        for _ in range(1000):  # 시험 지역 묶음 bootstrap, 두 조건 짝지어
+            idx = np.concatenate([tested[gC[tested] == g] for g in rng.choice(cl, len(cl))])
+            try:
+                diffs.append(pair_auc(pb, idx) - pair_auc(pa, idx))
+            except ZeroDivisionError:
+                pass
+        a, b = pair_auc(pa, tested), pair_auc(pb, tested)
+        rows.append(dict(features=fname, window='전체 (기간 안 쌍 AUC)', test_rows=len(tested), positives=int(yb[tested].sum()),
+                         train_tides=None, AUC_caresea=round(a, 3), AUC_with_tides=round(b, 3),
+                         diff_CI95=f'{b - a:+.3f} ({np.percentile(diffs, 2.5):+.3f}~{np.percentile(diffs, 97.5):+.3f})'))
+    section('A23 처음 보는 시기 + 처음 보는 지역 — 반려해변만 vs + TIDES (XGBoost, seed 3회 평균 확률)', pd.DataFrame(rows), 'A23_future_region')
+
+
 # ── 리포트 그림 ─────────────────────────────────────────────────────────────
 def figures(*_):
     """report.md용 그림 2장 (A20, A16 결과 CSV에서). 색: 기준 팔레트 1·2번 슬롯 (검증 통과)."""

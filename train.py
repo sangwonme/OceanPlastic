@@ -51,7 +51,7 @@ BLOCKS = {
                 't_stream', 't_aqua_visible', 't_sub_gravel', 't_sub_rock', 't_sub_mud'],  # 위성 판독 지형 라벨
 }
 FORBIDDEN = {'loc_id', 'beach_id', 'station_name', 'date', 'lat', 'lng', 'n_sessions', 'distance_km',
-             'participants', 'weight_kg', 'count_ea', 'volume_l'} | set(sum(TARGETS.values(), []))
+             'participants', 'people', 'weight_kg', 'count_ea', 'volume_l'} | set(sum(TARGETS.values(), []))
 PARAMS = dict(n_estimators=300, learning_rate=0.03, max_depth=3, min_child_weight=5, subsample=0.8,
               colsample_bytree=0.8, reg_lambda=5.0, n_jobs=4)
 # 최종 학습용 강한 규제 — 얕은 트리·큰 잎·분할 비용. 94개 해변에서 노이즈 분할을 막음 (A13: R² 0.145 → 0.197)
