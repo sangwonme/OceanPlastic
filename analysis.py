@@ -768,7 +768,7 @@ def a20(C, T, K, TK):
     from sklearn.naive_bayes import GaussianNB
     from sklearn.neural_network import MLPClassifier
     from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, HistGradientBoostingClassifier
-    from sklearn.metrics import roc_auc_score, balanced_accuracy_score
+    from sklearn.metrics import roc_auc_score, balanced_accuracy_score, roc_curve
     from xgboost import XGBClassifier
     from lightgbm import LGBMClassifier
     from catboost import CatBoostClassifier
@@ -790,7 +790,7 @@ def a20(C, T, K, TK):
         'LightGBM': ('부스팅 트리', lambda s, w: LGBMClassifier(n_estimators=300, learning_rate=0.03, max_depth=2, num_leaves=4, min_child_samples=20, subsample=0.8, subsample_freq=1, colsample_bytree=0.5, reg_lambda=20, scale_pos_weight=w, random_state=s, verbose=-1)),
         'CatBoost': ('부스팅 트리', lambda s, w: CatBoostClassifier(iterations=300, learning_rate=0.03, depth=3, l2_leaf_reg=20, auto_class_weights='Balanced', random_seed=s, verbose=0, allow_writing_files=False)),
     }
-    rows = []
+    rows, roc, FPR = [], {}, np.linspace(0, 1, 201)
     for split, g in [('새 지역', spatial_groups(df)), ('새 해변', df.loc_id.values)]:
         auc = {k: [] for k in list(M) + ['회귀 → 임계값 (XGBoost 회귀)', '앙상블 (전 모델 순위 평균)']}; bal = {k: [] for k in auc}
         for seed in SEEDS:
@@ -806,6 +806,12 @@ def a20(C, T, K, TK):
                 auc[k].append(roc_auc_score(yb, P[k]))
                 cut = 0.5 if k != '앙상블 (전 모델 순위 평균)' else 1 - yb.mean()
                 bal[k].append(balanced_accuracy_score(yb, P[k] > cut))
+                if split == '새 지역':  # ROC를 공통 FPR 격자에 보간 → seed 평균 (행 단위 예측은 저장하지 않음)
+                    fpr, tpr, _ = roc_curve(yb, P[k]); roc.setdefault(k, []).append(np.interp(FPR, fpr, tpr))
+        if split == '새 지역':
+            curves = pd.DataFrame({k: np.mean(v, 0) for k, v in roc.items()}).assign(**{'FPR': FPR})
+            curves.iloc[0, :-1] = 0.0
+            curves.round(4).to_csv(OUT / 'A20_roc_new_region.csv', index=False)
         for k in auc:
             fam = M[k][0] if k in M else ('회귀 후 분류' if '회귀' in k else '앙상블')
             rows.append(dict(split=split, model=k, family=fam, AUC=round(np.mean(auc[k]), 3), AUC_sd=round(np.std(auc[k]), 3),
@@ -872,7 +878,23 @@ def figures(*_):
     ax.set_title('무엇이 판정에 영향을 줬나 — XGBoost, 새 지역 검증 (permutation 중요도)', loc='left', color=INK, fontsize=11)
     ax.set_xlim(-0.065, 0.11)
     fig.tight_layout(); fig.savefig('figures/feature_importance.png', dpi=150); plt.close(fig)
-    print('figures/model_comparison.png, figures/feature_importance.png')
+
+    # 3) ROC 곡선: 새 지역, seed 평균. 색 = 기준 팔레트 1~4번 슬롯 (검증 통과, 3·4번 대비 부족 → 범례에 AUC 수치 + 리포트 표)
+    r, a = pd.read_csv(OUT / 'A20_roc_new_region.csv'), m.set_index('model')['AUC_새 지역']
+    show = ['HistGradientBoosting', 'CatBoost', 'XGBoost (현재)', '로지스틱 회귀']
+    fig, ax = plt.subplots(figsize=(6.4, 6))
+    ax.plot([0, 1], [0, 1], color=INK2, lw=1, ls='--', label='무작위 (AUC 0.500)')
+    for k, c in zip(show, [S1, S2, '#1baf7a', '#eda100']):
+        ax.plot(r.FPR, r[k], color=c, lw=2, label=f'{k}  AUC {a[k]:.3f}')
+    ax.set_xlim(0, 1); ax.set_ylim(0, 1.01); ax.set_aspect('equal')
+    ax.set_xlabel("잘못 울린 경보 비율 (실제 '적음' 중 '많음'으로 판정, FPR)")
+    ax.set_ylabel("잡아낸 비율 (실제 '많음' 중 '많음'으로 판정, TPR)")
+    ax.grid(color=GRID, lw=0.8); ax.set_axisbelow(True)
+    for s in ('top', 'right'): ax.spines[s].set_visible(False)
+    ax.legend(loc='lower right', frameon=False, fontsize=9)
+    ax.set_title('ROC 곡선 — 새 지역 검증 (5-fold × 3회 평균)', loc='left', color=INK, fontsize=11)
+    fig.tight_layout(); fig.savefig('figures/roc_curves.png', dpi=150); plt.close(fig)
+    print('figures/model_comparison.png, figures/feature_importance.png, figures/roc_curves.png')
 
 
 if __name__ == '__main__':

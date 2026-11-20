@@ -43,6 +43,20 @@
 - 새 해변(참고)은 새 지역보다 **0.08~0.18 높게** 나와요. 이웃 해변 정보가 새기 때문이라 성능 보고에는 쓰지 않아요.
 - 회귀 → 임계값의 균형정확도가 0.500인 이유: 회귀 예측이 평균 쪽으로 수축해서, 상위 14% 기준선을 넘는 예측이 거의 나오지 않아요.
 
+### ROC 곡선 (새 지역)
+
+![ROC 곡선](figures/roc_curves.png)
+
+| 잘못 울린 경보 비율 (FPR) 허용 | HistGradientBoosting | CatBoost | XGBoost (현재) | 로지스틱 회귀 |
+|---|---|---|---|---|
+| 10% | 25% | 25% | 24% | 18% |
+| 20% | **48%** | **49%** | 41% | 29% |
+| 30% | **67%** | 66% | 61% | 51% |
+
+- 곡선이 왼쪽 위에 붙을수록 좋아요. 표의 값은 그 오경보 수준에서 실제 '많음'인 날을 잡아낸 비율(TPR)이에요.
+- HGB와 CatBoost는 거의 겹쳐요. XGBoost보다 **오경보 15~60% 구간 전반에서 약 3~7%p 더** 잡고, 오경보 65% 이상에서는 모델들이 비슷해요.
+- 곡선은 3회 반복의 ROC를 같은 FPR 격자에 보간해 평균한 것이고, 곡선 아래 넓이는 위 표의 AUC와 같아요.
+
 ## 2. 이 정확도의 의미 (HistGradientBoosting, 새 지역)
 
 - **AUC 0.73**: 무작위로 고른 '많음'인 날과 '적음'인 날을 비교했을 때, 모델이 '많음'인 날을 더 위험하게 점수 매길 확률이 73%예요(무작위 50%).
@@ -82,7 +96,7 @@
 ```bash
 python data_load.py          # 원천 데이터 → outputs/features.csv (원천 데이터 필요)
 python train.py              # 현재 XGBoost 분류기, 새 지역 검증
-python analysis.py a20       # 전체 모델 비교 → outputs/analysis/A20_all_models.csv
+python analysis.py a20       # 전체 모델 비교 → outputs/analysis/A20_all_models.csv, A20_roc_new_region.csv
 python -c "import analysis; analysis.figures()"   # 이 리포트의 그림
 ```
 
