@@ -1093,6 +1093,182 @@ def a23(C, T, K, TK):
     section('A23 처음 보는 시기 + 처음 보는 지역 — 반려해변만 vs + TIDES (XGBoost, seed 3회 평균 확률)', pd.DataFrame(rows), 'A23_future_region')
 
 
+# ── A24 ────────────────────────────────────────────────────────────────────
+LEVELS_KG = [5, 10, 20, 40, 80]  # 단계 경계: 두 배 간격 (2026-11-20 PoC, 결과 보기 전에 고정)
+
+
+def a24(C, T, K, TK, label='지금 라벨'):
+    """PoC: 과제를 '정화 활동 1회당 수거량 단계'(경계 5·10·20·40·80kg → 6단계)로 바꿨을 때.
+    순서형 = 경계마다 'b 초과?' 이진 XGBoost(PARAMS_CLS), 확률은 뒤 경계가 앞보다 크지 않게 맞춤. 점수 = 기대 단계(초과 확률 합),
+    예측 단계 = 확률 0.5를 넘는 경계 수. 검증은 A23과 같음(주) + 시기 섞인 새 지역(참고).
+    지표: 순서 일치도 = 같은 기간 안에서 단계가 다른 두 기록 중 점수 순서를 맞힌 비율(0.5 무작위; 이진이면 기간 안 쌍 AUC와 같음)."""
+    from xgboost import XGBClassifier
+    from train import load_features, label_high, high_quantile, spatial_groups, USE_CLS, PARAMS_CLS, CLUSTER_KM
+    df, Tr = load_features(); gC = spatial_groups(df)
+    w = Tr['total'].values if label == '지금 라벨' else registered_target(df)
+    ok = ~np.isnan(w); _, thr77 = label_high(df[ok], w[ok], high_quantile())  # 등록 수거만이면 '많음' 경계도 같은 절차로 다시
+    tf = pd.read_csv('outputs/tides_features.csv', parse_dates=['date'])
+    b = np.log1p(np.array(LEVELS_KG) * 1000.)
+    lv = (np.nan_to_num(w, nan=-1)[:, None] > b).sum(1)
+    lvT = (np.log1p(tf.total_weight_g / tf.n_sessions).values[:, None] > b).sum(1)
+    cutoffs = pd.date_range('2023-01-01', '2026-01-01', freq='6MS')
+    win = np.full(len(df), -1)
+    for i, c in enumerate(cutoffs):
+        win[((df.date >= c) & (df.date < c + pd.DateOffset(months=6))).values] = i
+    D, dates, cols = dl.dist_matrix(tf, df), df.date.values, cols_of(USE_CLS)
+
+    def predict(use_t, future):
+        """행 × 경계 초과 확률 (seed 평균). future=False면 시기 섞인 새 지역(참고)."""
+        P = np.zeros((len(SEEDS), len(df), len(b)))
+        for s, seed in enumerate(SEEDS):
+            for i, c in enumerate(cutoffs if future else [None]):
+                for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(df, lv, gC):
+                    te, tr = te[ok[te]], tr[ok[tr]]
+                    if future:
+                        te, tr = te[win[te] == i], tr[dates[tr] < c]
+                    if not len(te):
+                        continue
+                    X, y = df.iloc[tr][cols], lv[tr]
+                    if use_t:
+                        k = (D[:, te].min(1) > CLUSTER_KM) & ((tf.date.values < c) if future else True)
+                        X, y = pd.concat([X, tf.loc[k, cols]]), np.r_[y, lvT[k]]
+                    for j in range(len(b)):
+                        yj = (y > j).astype(int)
+                        P[s, te, j] = yj.mean() if yj.min() == yj.max() else \
+                            XGBClassifier(**PARAMS_CLS, random_state=seed).fit(X, yj).predict_proba(df.iloc[te][cols])[:, 1]
+        return np.minimum.accumulate(P.mean(0), axis=1)
+
+    def conc(s, y, idx, grp):
+        """같은 묶음(기간) 안에서 y가 다른 쌍 중 s 순서가 맞은 비율, 동점 0.5."""
+        num = den = 0.0
+        for g in np.unique(grp[idx]):
+            i = idx[grp[idx] == g]; ds = np.sign(s[i][:, None] - s[i][None]); m = y[i][:, None] > y[i][None]
+            num += (ds[m] > 0).sum() + 0.5 * (ds[m] == 0).sum(); den += m.sum()
+        return num / den
+
+    rows, per = [], []
+    for mode, future in [('처음 보는 시기 + 지역 (주)', True), ('새 지역, 시기 섞임 (참고)', False)]:
+        idx = np.flatnonzero((win >= 0) & ok) if future else np.flatnonzero(ok)
+        grp = win if future else np.zeros(len(df), int)
+        P = {name: predict(use_t, future) for name, use_t in [('반려해변만', False), ('+ 정화 기록', True)]}
+        rng, cl, boot = np.random.default_rng(0), np.unique(gC[idx]), {n: [] for n in P}
+        for _ in range(1000):  # 시험 지역 묶음 bootstrap, 두 조건 짝지어
+            bi = np.concatenate([idx[gC[idx] == g] for g in rng.choice(cl, len(cl))])
+            for n, p in P.items():
+                boot[n].append(conc(p.sum(1), lv, bi, grp))
+        d = np.subtract(*[boot[n] for n in reversed(list(P))])
+        for n, p in P.items():
+            pred = (p > 0.5).sum(1)[idx]; mode_lv = np.bincount(lv[idx]).argmax()
+            rows.append(dict(validation=mode, train=n, rows=len(idx), concordance=round(conc(p.sum(1), lv, idx, grp), 3),
+                             CI95=f'{np.percentile(boot[n], 2.5):.3f}~{np.percentile(boot[n], 97.5):.3f}',
+                             **{f'AUC_>{k}kg': round(conc(p[:, j], (lv > j).astype(int), idx, grp), 3) for j, k in enumerate(LEVELS_KG)},
+                             **{'AUC_>77kg(참고선)': round(conc(p.sum(1), (w > thr77).astype(int), idx, grp), 3),
+                                'level_exact': round((pred == lv[idx]).mean(), 3), 'level_within1': round((abs(pred - lv[idx]) <= 1).mean(), 3),
+                                'mode_guess_exact': round((lv[idx] == mode_lv).mean(), 3),
+                                'mode_guess_within1': round((abs(lv[idx] - mode_lv) <= 1).mean(), 3)}))
+            if future:
+                for i, c in enumerate(cutoffs):
+                    ii = idx[win[idx] == i]
+                    per.append(dict(window=f'{c:%Y-%m}~+6개월', train=n, rows=len(ii), levels=np.bincount(lv[ii], minlength=6).tolist(),
+                                    concordance=round(conc(p.sum(1), lv, ii, grp), 3) if len(np.unique(lv[ii])) > 1 else None))
+        rows.append(dict(validation=mode, train='차이 (+ 정화 기록 − 반려해변만)', rows=len(idx),
+                         concordance=round(rows[-1]['concordance'] - rows[-2]['concordance'], 3),
+                         CI95=f'{np.percentile(d, 2.5):+.3f}~{np.percentile(d, 97.5):+.3f}'))
+    sfx = '' if label == '지금 라벨' else '_registered'
+    section(f'A24 PoC — 과제를 수거량 단계(경계 {LEVELS_KG}kg, 6단계, 순서형)로 바꿨을 때 [{label}] (XGBoost, seed 3회 평균)',
+            pd.DataFrame(rows), 'A24_levels' + sfx)
+    section(f'A24b 기간별 (처음 보는 시기 + 지역) [{label}] — levels = 단계 0~5 기록 수', pd.DataFrame(per), 'A24_levels_by_window' + sfx)
+
+
+def a24r(C, T, K, TK):
+    a24(C, T, K, TK, label='등록 수거만')
+
+
+def registered_target(df):
+    """등록 단체 수거만의 log1p(세션당 총무게). 위치로만 붙인 개인 수거(beach_match_status=gps_only)는 무게·세션 수 모두에서 뺀다.
+    등록 수거가 없는 날은 NaN."""
+    s = dl.load_sessions()
+    s = s[(s.weight_method == 'measured') & (s.beach_match_status == 'registered')]
+    g = s.groupby([s.beach_id.astype(int), 'day']).total_weight_g.agg(['sum', 'size'])
+    r = g.reindex(pd.MultiIndex.from_arrays([df.beach_id.astype(int), df.date]))
+    return np.log1p(r['sum'] / r['size']).values
+
+
+# ── A25 ────────────────────────────────────────────────────────────────────
+def a25(C, T, K, TK):
+    """표준화 정제 (2026-11-20 결과 보기 전에 정함): 라벨을 등록 단체 수거만으로 (registered_target).
+    '많음' 경계는 같은 절차(KOEM 대응 분위, 기준기간 2022–24)로 다시 계산하고 TIDES 라벨도 그 경계를 쓴다.
+    학습 라벨 × 시험 라벨 2×2, 각각 반려해변만 / + TIDES. 시험 라벨이 '지금 라벨'인 칸이 공정 비교(같은 문제).
+    시험 라벨이 '등록 수거만'인 칸은 문제 자체가 바뀐 것 — 두 학습 라벨을 같은 시험에서 비교한다. 검증 = A23."""
+    from sklearn.metrics import roc_auc_score
+    from xgboost import XGBClassifier
+    from train import load_features, label_high, high_quantile, spatial_groups, USE_CLS, PARAMS_CLS, CLUSTER_KM
+    df, Tr = load_features(); q, gC, cols = high_quantile(), spatial_groups(df), cols_of(USE_CLS)
+    yR = registered_target(df); has = ~np.isnan(yR)
+    y0, thr0 = label_high(df, Tr['total'], q)
+    _, thr1 = label_high(df[has], yR[has], q); y1 = (np.nan_to_num(yR, nan=-1) > thr1).astype(int)
+    tf = pd.read_csv('outputs/tides_features.csv', parse_dates=['date'])
+    lt = np.log1p(tf.total_weight_g / tf.n_sessions).values
+    labels = {'지금 라벨': (y0, np.ones(len(df), bool), (lt > thr0).astype(int), thr0),
+              '등록 수거만': (y1, has, (lt > thr1).astype(int), thr1)}
+    D, dates = dl.dist_matrix(tf, df), df.date.values
+    cutoffs = pd.date_range('2023-01-01', '2026-01-01', freq='6MS')
+    win = np.full(len(df), -1)
+    for i, c in enumerate(cutoffs):
+        win[((df.date >= c) & (df.date < c + pd.DateOffset(months=6))).values] = i
+
+    def predict(y, ok, yt, use_t):
+        """A23과 같은 분할. 학습은 라벨이 있는 행(ok)만, 예측은 기간 안 모든 행."""
+        P = np.zeros((len(SEEDS), len(df)))
+        for s, seed in enumerate(SEEDS):
+            for i, c in enumerate(cutoffs):
+                for tr, te in GroupKFold(5, shuffle=True, random_state=seed).split(df, y0, gC):
+                    te, tr = te[win[te] == i], tr[(dates[tr] < c) & ok[tr]]
+                    if not len(te):
+                        continue
+                    X, yy = df.iloc[tr][cols], y[tr]
+                    if use_t:
+                        k = (D[:, te].min(1) > CLUSTER_KM) & (tf.date.values < c)
+                        X, yy = pd.concat([X, tf.loc[k, cols]]), np.r_[yy, yt[k]]
+                    if yy.min() == yy.max():
+                        P[s, te] = 0.5; continue
+                    m = XGBClassifier(**PARAMS_CLS, scale_pos_weight=(yy == 0).sum() / max((yy == 1).sum(), 1), random_state=seed)
+                    P[s, te] = m.fit(X, yy).predict_proba(df.iloc[te][cols])[:, 1]
+        return P.mean(0)
+
+    def pair_auc(p, y, idx):
+        num = den = 0.0
+        for i in range(len(cutoffs)):
+            j = idx[win[idx] == i]; yy = y[j]
+            if 0 < yy.sum() < len(yy):
+                pairs = yy.sum() * (len(yy) - yy.sum()); num += roc_auc_score(yy, p[j]) * pairs; den += pairs
+        return num / den
+
+    P = {(lab, t): predict(v[0], v[1], v[2], t) for lab, v in labels.items() for t in (False, True)}
+    rows = [dict(test_label='—', train_label=lab, data='—', test_rows=None, positives=None, AUC=None,
+                 note=f"'많음' 경계 {np.expm1(v[3]) / 1000:.1f}kg/회, 라벨 있는 날 {v[1].sum()}행, 양성 비율 {v[0][v[1]].mean():.3f}")
+            for lab, v in labels.items()]
+    for te_lab, (yte, okte, _, _) in labels.items():
+        idx = np.flatnonzero((win >= 0) & okte); cl = np.unique(gC[idx]); rng = np.random.default_rng(0)
+        boots = [np.concatenate([idx[gC[idx] == g] for g in rng.choice(cl, len(cl))]) for _ in range(1000)]
+        for t, dname in [(False, '반려해변만'), (True, '+ TIDES')]:
+            base = P[('지금 라벨', t)]
+            for tr_lab in labels:
+                p = P[(tr_lab, t)]; r = dict(test_label=te_lab, train_label=tr_lab, data=dname, test_rows=len(idx),
+                                             positives=int(yte[idx].sum()), AUC=round(pair_auc(p, yte, idx), 3))
+                if tr_lab != '지금 라벨':
+                    d = []
+                    for bi in boots:
+                        try:
+                            d.append(pair_auc(p, yte, bi) - pair_auc(base, yte, bi))
+                        except ZeroDivisionError:
+                            pass
+                    r['note'] = f"학습 라벨 효과 {r['AUC'] - pair_auc(base, yte, idx):+.3f} ({np.percentile(d, 2.5):+.3f}~{np.percentile(d, 97.5):+.3f})"
+                rows.append(r)
+    section('A25 표준화 정제 — 라벨을 등록 단체 수거만으로 (처음 보는 시기 + 지역, 기간 안 쌍 AUC, XGBoost seed 3회 평균)',
+            pd.DataFrame(rows), 'A25_registered')
+
+
 # ── 리포트 그림 ─────────────────────────────────────────────────────────────
 def figures(*_):
     """report.md용 그림 2장 (A20, A16 결과 CSV에서). 색: 기준 팔레트 1·2번 슬롯 (검증 통과)."""
@@ -1164,7 +1340,23 @@ def figures(*_):
     ax.legend(loc='lower right', frameon=False, fontsize=9)
     ax.set_title('ROC 곡선 — 새 지역 검증 (5-fold × 3회 평균)', loc='left', color=INK, fontsize=11)
     fig.tight_layout(); fig.savefig('figures/roc_curves.png', dpi=150); plt.close(fig)
-    print('figures/model_comparison.png, figures/feature_importance.png, figures/roc_curves.png')
+
+    # 4) A24 PoC: 경계별 판별 점수 (처음 보는 시기 + 지역)
+    lv = pd.read_csv(OUT / 'A24_levels.csv')
+    lv = lv[lv.validation.str.contains('주') & ~lv.train.str.startswith('차이')]
+    xs = [f'AUC_>{k}kg' for k in LEVELS_KG]
+    fig, ax = plt.subplots(figsize=(7, 4.4))
+    ax.axhline(0.5, color=INK2, lw=1, ls='--'); ax.text(4.12, 0.505, '무작위 0.5', va='bottom', color=INK2, fontsize=8.5)
+    for (_, r), c in zip(lv.iterrows(), [S1, S2]):
+        ax.plot(range(5), r[xs].astype(float), '-o', color=c, lw=2, ms=8, mec=SURF, mew=2, label=r.train)
+        ax.text(4.12, float(r[xs[-1]]), f'{r.train} {float(r[xs[-1]]):.2f}', va='center', color=INK, fontsize=9)
+    ax.set_xticks(range(5), [f'{k}kg 초과' for k in LEVELS_KG]); ax.set_xlim(-0.3, 5.3); ax.set_ylim(0.3, 0.8)
+    ax.set_ylabel('판별 점수 (AUC, 기간 안 쌍)'); ax.legend(loc='upper left', frameon=False, fontsize=9)
+    ax.grid(axis='y', color=GRID, lw=0.8); ax.set_axisbelow(True)
+    for s in ('top', 'right'): ax.spines[s].set_visible(False)
+    ax.set_title('수거량 단계 경계별 판별 점수 — 처음 보는 시기 + 지역', loc='left', color=INK, fontsize=11)
+    fig.tight_layout(); fig.savefig('figures/levels_by_threshold.png', dpi=150); plt.close(fig)
+    print('figures/model_comparison.png, figures/feature_importance.png, figures/roc_curves.png, figures/levels_by_threshold.png')
 
 
 if __name__ == '__main__':
